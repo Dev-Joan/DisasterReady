@@ -1,0 +1,18 @@
+[
+  {
+    "alertId": "a1",
+    "severity": "critical",
+    "hazard": "flood",
+    "region": "Lebanon",
+    "message": "Flash flood warning for your area. Avoid low-lying roads and move to higher ground if needed.",
+    "active": true
+  },
+  {
+    "alertId": "a2",
+    "severity": "warning",
+    "hazard": "flood",
+    "region": "UK",
+    "message": "Flood watch in effect for river areas. Prepare your emergency kit and check evacuation routes.",
+    "active": true
+  }
+]

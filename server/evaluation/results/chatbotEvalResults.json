@@ -1,0 +1,1483 @@
+{
+  "generatedAt": "2026-09-18T12:06:00.891Z",
+  "config": {
+    "topK": 4,
+    "minRelevanceScore": 0.35
+  },
+  "llmAvailable": false,
+  "summary": {
+    "hitAtK": "24/25 (96%)",
+    "hitAtTop1": "24/25 (96%)",
+    "avgTopScore": "0.7187",
+    "oosSuppressed": "10/10 (100%)",
+    "oosFallbackMatch": "0/10 (0%)",
+    "uncSuppressed": "1/6 (17%)",
+    "uncAvoidedHardFallback": "0/6 (0%)",
+    "uncDisclaimedGap": "0/6 (0%)"
+  },
+  "inDomain": [
+    {
+      "id": "id-01",
+      "question": "What's the recommended thing to do if the ground starts shaking while I'm inside a building?",
+      "expectedChunkIds": [
+        "eq-01"
+      ],
+      "topRetrievedId": "eq-01",
+      "topRetrievedTitle": "Drop, Cover, and Hold On",
+      "topScore": 0.7395,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "eq-01",
+          "title": "Drop, Cover, and Hold On",
+          "score": 0.7395
+        },
+        {
+          "id": "eq-02",
+          "title": "If you are in bed when shaking starts",
+          "score": 0.6739
+        },
+        {
+          "id": "eq-04",
+          "title": "Checking for gas leaks after shaking stops",
+          "score": 0.5464
+        },
+        {
+          "id": "eq-05",
+          "title": "Aftershocks",
+          "score": 0.5112
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-02",
+      "question": "If an earthquake happens at night while I'm asleep, should I get up and run somewhere safer?",
+      "expectedChunkIds": [
+        "eq-02"
+      ],
+      "topRetrievedId": "eq-02",
+      "topRetrievedTitle": "If you are in bed when shaking starts",
+      "topScore": 0.5954,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "eq-02",
+          "title": "If you are in bed when shaking starts",
+          "score": 0.5954
+        },
+        {
+          "id": "eq-03",
+          "title": "Earthquakes and moving vehicles",
+          "score": 0.5409
+        },
+        {
+          "id": "eq-06",
+          "title": "Securing your home before an earthquake",
+          "score": 0.4842
+        },
+        {
+          "id": "eq-01",
+          "title": "Drop, Cover, and Hold On",
+          "score": 0.4593
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-03",
+      "question": "What should I do if I'm driving and an earthquake starts?",
+      "expectedChunkIds": [
+        "eq-03"
+      ],
+      "topRetrievedId": "eq-03",
+      "topRetrievedTitle": "Earthquakes and moving vehicles",
+      "topScore": 0.7717,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "eq-03",
+          "title": "Earthquakes and moving vehicles",
+          "score": 0.7717
+        },
+        {
+          "id": "eq-02",
+          "title": "If you are in bed when shaking starts",
+          "score": 0.6048
+        },
+        {
+          "id": "eq-01",
+          "title": "Drop, Cover, and Hold On",
+          "score": 0.5528
+        },
+        {
+          "id": "eq-05",
+          "title": "Aftershocks",
+          "score": 0.523
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-04",
+      "question": "After the shaking from an earthquake stops, what's the first hazard I should check for?",
+      "expectedChunkIds": [
+        "eq-04"
+      ],
+      "topRetrievedId": "eq-02",
+      "topRetrievedTitle": "If you are in bed when shaking starts",
+      "topScore": 0.682,
+      "rankOfExpected": null,
+      "hitAtK": false,
+      "hitAtTop1": false,
+      "retrieved": [
+        {
+          "id": "eq-02",
+          "title": "If you are in bed when shaking starts",
+          "score": 0.682
+        },
+        {
+          "id": "eq-01",
+          "title": "Drop, Cover, and Hold On",
+          "score": 0.6602
+        },
+        {
+          "id": "eq-05",
+          "title": "Aftershocks",
+          "score": 0.6397
+        },
+        {
+          "id": "eq-03",
+          "title": "Earthquakes and moving vehicles",
+          "score": 0.6101
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-05",
+      "question": "Can more earthquakes happen right after the first one, and should I worry about damaged buildings afterward?",
+      "expectedChunkIds": [
+        "eq-05"
+      ],
+      "topRetrievedId": "eq-05",
+      "topRetrievedTitle": "Aftershocks",
+      "topScore": 0.6577,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "eq-05",
+          "title": "Aftershocks",
+          "score": 0.6577
+        },
+        {
+          "id": "eq-06",
+          "title": "Securing your home before an earthquake",
+          "score": 0.4677
+        },
+        {
+          "id": "eq-03",
+          "title": "Earthquakes and moving vehicles",
+          "score": 0.4333
+        },
+        {
+          "id": "eq-02",
+          "title": "If you are in bed when shaking starts",
+          "score": 0.4086
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-06",
+      "question": "How can I earthquake-proof my furniture and shelves before anything happens?",
+      "expectedChunkIds": [
+        "eq-06"
+      ],
+      "topRetrievedId": "eq-06",
+      "topRetrievedTitle": "Securing your home before an earthquake",
+      "topScore": 0.7136,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "eq-06",
+          "title": "Securing your home before an earthquake",
+          "score": 0.7136
+        },
+        {
+          "id": "eq-01",
+          "title": "Drop, Cover, and Hold On",
+          "score": 0.5478
+        },
+        {
+          "id": "eq-02",
+          "title": "If you are in bed when shaking starts",
+          "score": 0.5358
+        },
+        {
+          "id": "eq-05",
+          "title": "Aftershocks",
+          "score": 0.5235
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-07",
+      "question": "Is it okay to drive my car through a flooded road if the water doesn't look too deep?",
+      "expectedChunkIds": [
+        "fl-01"
+      ],
+      "topRetrievedId": "fl-01",
+      "topRetrievedTitle": "Never drive through floodwater",
+      "topScore": 0.6869,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "fl-01",
+          "title": "Never drive through floodwater",
+          "score": 0.6869
+        },
+        {
+          "id": "fl-02",
+          "title": "Evacuating before a flood",
+          "score": 0.4242
+        },
+        {
+          "id": "fl-05",
+          "title": "Household flood planning",
+          "score": 0.339
+        },
+        {
+          "id": "fl-04",
+          "title": "Flash flood watches versus warnings",
+          "score": 0.3106
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-08",
+      "question": "If officials tell me to evacuate because of an approaching flood, how quickly should I leave?",
+      "expectedChunkIds": [
+        "fl-02"
+      ],
+      "topRetrievedId": "fl-02",
+      "topRetrievedTitle": "Evacuating before a flood",
+      "topScore": 0.6697,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "fl-02",
+          "title": "Evacuating before a flood",
+          "score": 0.6697
+        },
+        {
+          "id": "wf-02",
+          "title": "When to evacuate for wildfire",
+          "score": 0.5349
+        },
+        {
+          "id": "fl-05",
+          "title": "Household flood planning",
+          "score": 0.5292
+        },
+        {
+          "id": "fl-04",
+          "title": "Flash flood watches versus warnings",
+          "score": 0.5219
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-09",
+      "question": "Should I turn off my electricity before flood water reaches my house?",
+      "expectedChunkIds": [
+        "fl-03"
+      ],
+      "topRetrievedId": "fl-03",
+      "topRetrievedTitle": "Preparing utilities before a flood",
+      "topScore": 0.7946,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "fl-03",
+          "title": "Preparing utilities before a flood",
+          "score": 0.7946
+        },
+        {
+          "id": "fl-02",
+          "title": "Evacuating before a flood",
+          "score": 0.5216
+        },
+        {
+          "id": "fl-01",
+          "title": "Never drive through floodwater",
+          "score": 0.4791
+        },
+        {
+          "id": "fl-05",
+          "title": "Household flood planning",
+          "score": 0.4465
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-10",
+      "question": "What's the difference between a flash flood watch and a flash flood warning?",
+      "expectedChunkIds": [
+        "fl-04"
+      ],
+      "topRetrievedId": "fl-04",
+      "topRetrievedTitle": "Flash flood watches versus warnings",
+      "topScore": 0.8252,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "fl-04",
+          "title": "Flash flood watches versus warnings",
+          "score": 0.8252
+        },
+        {
+          "id": "fl-02",
+          "title": "Evacuating before a flood",
+          "score": 0.3878
+        },
+        {
+          "id": "fl-01",
+          "title": "Never drive through floodwater",
+          "score": 0.3813
+        },
+        {
+          "id": "fl-05",
+          "title": "Household flood planning",
+          "score": 0.3719
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-11",
+      "question": "What should a family's flood preparedness plan include?",
+      "expectedChunkIds": [
+        "fl-05"
+      ],
+      "topRetrievedId": "fl-05",
+      "topRetrievedTitle": "Household flood planning",
+      "topScore": 0.7014,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "fl-05",
+          "title": "Household flood planning",
+          "score": 0.7014
+        },
+        {
+          "id": "gen-01",
+          "title": "Core emergency kit contents",
+          "score": 0.4794
+        },
+        {
+          "id": "fl-02",
+          "title": "Evacuating before a flood",
+          "score": 0.4645
+        },
+        {
+          "id": "gen-02",
+          "title": "Building a family communication plan",
+          "score": 0.4609
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-12",
+      "question": "How much space should I clear around my house to protect it from wildfire?",
+      "expectedChunkIds": [
+        "wf-01"
+      ],
+      "topRetrievedId": "wf-01",
+      "topRetrievedTitle": "Creating defensible space around a home",
+      "topScore": 0.656,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "wf-01",
+          "title": "Creating defensible space around a home",
+          "score": 0.656
+        },
+        {
+          "id": "wf-03",
+          "title": "Wildfire smoke and indoor air",
+          "score": 0.5369
+        },
+        {
+          "id": "wf-02",
+          "title": "When to evacuate for wildfire",
+          "score": 0.4297
+        },
+        {
+          "id": "storm-01",
+          "title": "Tornado warning: where to shelter",
+          "score": 0.3383
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-13",
+      "question": "How do I know when it's time to leave my home because of an approaching wildfire?",
+      "expectedChunkIds": [
+        "wf-02"
+      ],
+      "topRetrievedId": "wf-02",
+      "topRetrievedTitle": "When to evacuate for wildfire",
+      "topScore": 0.6595,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "wf-02",
+          "title": "When to evacuate for wildfire",
+          "score": 0.6595
+        },
+        {
+          "id": "wf-03",
+          "title": "Wildfire smoke and indoor air",
+          "score": 0.4739
+        },
+        {
+          "id": "evac-01",
+          "title": "Choosing and knowing an evacuation route",
+          "score": 0.4138
+        },
+        {
+          "id": "wf-01",
+          "title": "Creating defensible space around a home",
+          "score": 0.3938
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-14",
+      "question": "How can I protect my indoor air quality during a wildfire smoke event?",
+      "expectedChunkIds": [
+        "wf-03"
+      ],
+      "topRetrievedId": "wf-03",
+      "topRetrievedTitle": "Wildfire smoke and indoor air",
+      "topScore": 0.8138,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "wf-03",
+          "title": "Wildfire smoke and indoor air",
+          "score": 0.8138
+        },
+        {
+          "id": "wf-02",
+          "title": "When to evacuate for wildfire",
+          "score": 0.5056
+        },
+        {
+          "id": "wf-01",
+          "title": "Creating defensible space around a home",
+          "score": 0.4652
+        },
+        {
+          "id": "evac-03",
+          "title": "Sheltering in place versus evacuating",
+          "score": 0.3499
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-15",
+      "question": "Where's the safest place to go inside my house during a tornado warning?",
+      "expectedChunkIds": [
+        "storm-01"
+      ],
+      "topRetrievedId": "storm-01",
+      "topRetrievedTitle": "Tornado warning: where to shelter",
+      "topScore": 0.7957,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "storm-01",
+          "title": "Tornado warning: where to shelter",
+          "score": 0.7957
+        },
+        {
+          "id": "evac-03",
+          "title": "Sheltering in place versus evacuating",
+          "score": 0.5018
+        },
+        {
+          "id": "storm-03",
+          "title": "Lightning safety: the 30-30 rule",
+          "score": 0.4399
+        },
+        {
+          "id": "wf-01",
+          "title": "Creating defensible space around a home",
+          "score": 0.4391
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-16",
+      "question": "What's the difference between a hurricane watch and a hurricane warning in terms of when I should prepare?",
+      "expectedChunkIds": [
+        "storm-02"
+      ],
+      "topRetrievedId": "storm-02",
+      "topRetrievedTitle": "Hurricane preparation timeline",
+      "topScore": 0.7522,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "storm-02",
+          "title": "Hurricane preparation timeline",
+          "score": 0.7522
+        },
+        {
+          "id": "fl-04",
+          "title": "Flash flood watches versus warnings",
+          "score": 0.5637
+        },
+        {
+          "id": "storm-01",
+          "title": "Tornado warning: where to shelter",
+          "score": 0.4125
+        },
+        {
+          "id": "wf-02",
+          "title": "When to evacuate for wildfire",
+          "score": 0.3558
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-17",
+      "question": "How do I know when it's safe to go back outside after a lightning storm?",
+      "expectedChunkIds": [
+        "storm-03"
+      ],
+      "topRetrievedId": "storm-03",
+      "topRetrievedTitle": "Lightning safety: the 30-30 rule",
+      "topScore": 0.6721,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "storm-03",
+          "title": "Lightning safety: the 30-30 rule",
+          "score": 0.6721
+        },
+        {
+          "id": "wf-02",
+          "title": "When to evacuate for wildfire",
+          "score": 0.4533
+        },
+        {
+          "id": "fl-03",
+          "title": "Preparing utilities before a flood",
+          "score": 0.4333
+        },
+        {
+          "id": "storm-01",
+          "title": "Tornado warning: where to shelter",
+          "score": 0.4171
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-18",
+      "question": "What items should I include in a basic emergency preparedness kit?",
+      "expectedChunkIds": [
+        "gen-01"
+      ],
+      "topRetrievedId": "gen-01",
+      "topRetrievedTitle": "Core emergency kit contents",
+      "topScore": 0.7363,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "gen-01",
+          "title": "Core emergency kit contents",
+          "score": 0.7363
+        },
+        {
+          "id": "evac-02",
+          "title": "What to bring when evacuating",
+          "score": 0.6059
+        },
+        {
+          "id": "gen-03",
+          "title": "The go-bag concept",
+          "score": 0.5158
+        },
+        {
+          "id": "gen-04",
+          "title": "Planning for pets and service animals",
+          "score": 0.4464
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-19",
+      "question": "How do I set up a family emergency communication plan if phone lines get congested?",
+      "expectedChunkIds": [
+        "gen-02"
+      ],
+      "topRetrievedId": "gen-02",
+      "topRetrievedTitle": "Building a family communication plan",
+      "topScore": 0.7717,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "gen-02",
+          "title": "Building a family communication plan",
+          "score": 0.7717
+        },
+        {
+          "id": "evac-01",
+          "title": "Choosing and knowing an evacuation route",
+          "score": 0.4779
+        },
+        {
+          "id": "fl-05",
+          "title": "Household flood planning",
+          "score": 0.4674
+        },
+        {
+          "id": "gen-05",
+          "title": "Planning for accessibility and medical needs",
+          "score": 0.3916
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-20",
+      "question": "What's a 'go-bag' and what should be inside it?",
+      "expectedChunkIds": [
+        "gen-03"
+      ],
+      "topRetrievedId": "gen-03",
+      "topRetrievedTitle": "The go-bag concept",
+      "topScore": 0.6926,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "gen-03",
+          "title": "The go-bag concept",
+          "score": 0.6926
+        },
+        {
+          "id": "evac-02",
+          "title": "What to bring when evacuating",
+          "score": 0.4564
+        },
+        {
+          "id": "gen-01",
+          "title": "Core emergency kit contents",
+          "score": 0.2584
+        },
+        {
+          "id": "eq-01",
+          "title": "Drop, Cover, and Hold On",
+          "score": 0.1796
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-21",
+      "question": "How do I include my pets in my emergency evacuation plan?",
+      "expectedChunkIds": [
+        "gen-04"
+      ],
+      "topRetrievedId": "gen-04",
+      "topRetrievedTitle": "Planning for pets and service animals",
+      "topScore": 0.8138,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "gen-04",
+          "title": "Planning for pets and service animals",
+          "score": 0.8138
+        },
+        {
+          "id": "evac-01",
+          "title": "Choosing and knowing an evacuation route",
+          "score": 0.5682
+        },
+        {
+          "id": "fl-05",
+          "title": "Household flood planning",
+          "score": 0.5568
+        },
+        {
+          "id": "wf-02",
+          "title": "When to evacuate for wildfire",
+          "score": 0.4593
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-22",
+      "question": "What should someone who uses a wheelchair or medical equipment plan for in an emergency?",
+      "expectedChunkIds": [
+        "gen-05"
+      ],
+      "topRetrievedId": "gen-05",
+      "topRetrievedTitle": "Planning for accessibility and medical needs",
+      "topScore": 0.7183,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "gen-05",
+          "title": "Planning for accessibility and medical needs",
+          "score": 0.7183
+        },
+        {
+          "id": "gen-01",
+          "title": "Core emergency kit contents",
+          "score": 0.4676
+        },
+        {
+          "id": "fl-05",
+          "title": "Household flood planning",
+          "score": 0.4403
+        },
+        {
+          "id": "gen-04",
+          "title": "Planning for pets and service animals",
+          "score": 0.4275
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-23",
+      "question": "How many evacuation routes should my household plan out in advance?",
+      "expectedChunkIds": [
+        "evac-01"
+      ],
+      "topRetrievedId": "evac-01",
+      "topRetrievedTitle": "Choosing and knowing an evacuation route",
+      "topScore": 0.7486,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "evac-01",
+          "title": "Choosing and knowing an evacuation route",
+          "score": 0.7486
+        },
+        {
+          "id": "fl-05",
+          "title": "Household flood planning",
+          "score": 0.573
+        },
+        {
+          "id": "wf-02",
+          "title": "When to evacuate for wildfire",
+          "score": 0.5074
+        },
+        {
+          "id": "fl-02",
+          "title": "Evacuating before a flood",
+          "score": 0.5008
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-24",
+      "question": "What should I grab first if I have to evacuate my home quickly?",
+      "expectedChunkIds": [
+        "evac-02"
+      ],
+      "topRetrievedId": "evac-02",
+      "topRetrievedTitle": "What to bring when evacuating",
+      "topScore": 0.5633,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "evac-02",
+          "title": "What to bring when evacuating",
+          "score": 0.5633
+        },
+        {
+          "id": "evac-01",
+          "title": "Choosing and knowing an evacuation route",
+          "score": 0.5012
+        },
+        {
+          "id": "fl-05",
+          "title": "Household flood planning",
+          "score": 0.4926
+        },
+        {
+          "id": "gen-03",
+          "title": "The go-bag concept",
+          "score": 0.4836
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "id-25",
+      "question": "How do I decide whether to evacuate or just stay inside during an emergency?",
+      "expectedChunkIds": [
+        "evac-03"
+      ],
+      "topRetrievedId": "evac-03",
+      "topRetrievedTitle": "Sheltering in place versus evacuating",
+      "topScore": 0.7365,
+      "rankOfExpected": 1,
+      "hitAtK": true,
+      "hitAtTop1": true,
+      "retrieved": [
+        {
+          "id": "evac-03",
+          "title": "Sheltering in place versus evacuating",
+          "score": 0.7365
+        },
+        {
+          "id": "wf-02",
+          "title": "When to evacuate for wildfire",
+          "score": 0.5919
+        },
+        {
+          "id": "fl-02",
+          "title": "Evacuating before a flood",
+          "score": 0.5701
+        },
+        {
+          "id": "evac-01",
+          "title": "Choosing and knowing an evacuation route",
+          "score": 0.5633
+        }
+      ],
+      "reply": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    }
+  ],
+  "outOfScope": [
+    {
+      "id": "oos-01",
+      "question": "What is the capital of France?",
+      "topRetrievedId": "wf-01",
+      "topRetrievedTitle": "Creating defensible space around a home",
+      "topScore": 0.0778,
+      "correctlySuppressed": true,
+      "retrieved": [
+        {
+          "id": "wf-01",
+          "title": "Creating defensible space around a home",
+          "score": 0.0778
+        },
+        {
+          "id": "eq-03",
+          "title": "Earthquakes and moving vehicles",
+          "score": 0.0637
+        },
+        {
+          "id": "storm-01",
+          "title": "Tornado warning: where to shelter",
+          "score": 0.0465
+        },
+        {
+          "id": "eq-02",
+          "title": "If you are in bed when shaking starts",
+          "score": 0.0378
+        }
+      ],
+      "reply": null,
+      "exactFallbackMatch": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "oos-02",
+      "question": "Can you write me a Python function to reverse a string?",
+      "topRetrievedId": "evac-01",
+      "topRetrievedTitle": "Choosing and knowing an evacuation route",
+      "topScore": 0.072,
+      "correctlySuppressed": true,
+      "retrieved": [
+        {
+          "id": "evac-01",
+          "title": "Choosing and knowing an evacuation route",
+          "score": 0.072
+        },
+        {
+          "id": "fl-02",
+          "title": "Evacuating before a flood",
+          "score": 0.0628
+        },
+        {
+          "id": "fl-03",
+          "title": "Preparing utilities before a flood",
+          "score": 0.0497
+        },
+        {
+          "id": "gen-03",
+          "title": "The go-bag concept",
+          "score": 0.0482
+        }
+      ],
+      "reply": null,
+      "exactFallbackMatch": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "oos-03",
+      "question": "What's a good recipe for banana bread?",
+      "topRetrievedId": "gen-01",
+      "topRetrievedTitle": "Core emergency kit contents",
+      "topScore": 0.1087,
+      "correctlySuppressed": true,
+      "retrieved": [
+        {
+          "id": "gen-01",
+          "title": "Core emergency kit contents",
+          "score": 0.1087
+        },
+        {
+          "id": "gen-03",
+          "title": "The go-bag concept",
+          "score": 0.0716
+        },
+        {
+          "id": "eq-02",
+          "title": "If you are in bed when shaking starts",
+          "score": 0.0673
+        },
+        {
+          "id": "evac-01",
+          "title": "Choosing and knowing an evacuation route",
+          "score": 0.046
+        }
+      ],
+      "reply": null,
+      "exactFallbackMatch": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "oos-04",
+      "question": "Should I invest my savings in index funds or individual stocks?",
+      "topRetrievedId": "evac-03",
+      "topRetrievedTitle": "Sheltering in place versus evacuating",
+      "topScore": 0.2061,
+      "correctlySuppressed": true,
+      "retrieved": [
+        {
+          "id": "evac-03",
+          "title": "Sheltering in place versus evacuating",
+          "score": 0.2061
+        },
+        {
+          "id": "gen-04",
+          "title": "Planning for pets and service animals",
+          "score": 0.1456
+        },
+        {
+          "id": "fl-04",
+          "title": "Flash flood watches versus warnings",
+          "score": 0.1323
+        },
+        {
+          "id": "wf-02",
+          "title": "When to evacuate for wildfire",
+          "score": 0.1179
+        }
+      ],
+      "reply": null,
+      "exactFallbackMatch": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "oos-05",
+      "question": "I have a headache, what medication should I take?",
+      "topRetrievedId": "eq-02",
+      "topRetrievedTitle": "If you are in bed when shaking starts",
+      "topScore": 0.1312,
+      "correctlySuppressed": true,
+      "retrieved": [
+        {
+          "id": "eq-02",
+          "title": "If you are in bed when shaking starts",
+          "score": 0.1312
+        },
+        {
+          "id": "storm-01",
+          "title": "Tornado warning: where to shelter",
+          "score": 0.0942
+        },
+        {
+          "id": "eq-03",
+          "title": "Earthquakes and moving vehicles",
+          "score": 0.0903
+        },
+        {
+          "id": "fl-01",
+          "title": "Never drive through floodwater",
+          "score": 0.082
+        }
+      ],
+      "reply": null,
+      "exactFallbackMatch": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "oos-06",
+      "question": "My landlord won't return my deposit, what are my legal options?",
+      "topRetrievedId": "gen-04",
+      "topRetrievedTitle": "Planning for pets and service animals",
+      "topScore": 0.1982,
+      "correctlySuppressed": true,
+      "retrieved": [
+        {
+          "id": "gen-04",
+          "title": "Planning for pets and service animals",
+          "score": 0.1982
+        },
+        {
+          "id": "evac-03",
+          "title": "Sheltering in place versus evacuating",
+          "score": 0.1429
+        },
+        {
+          "id": "storm-01",
+          "title": "Tornado warning: where to shelter",
+          "score": 0.1181
+        },
+        {
+          "id": "evac-02",
+          "title": "What to bring when evacuating",
+          "score": 0.1016
+        }
+      ],
+      "reply": null,
+      "exactFallbackMatch": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "oos-07",
+      "question": "Tell me a joke.",
+      "topRetrievedId": "eq-02",
+      "topRetrievedTitle": "If you are in bed when shaking starts",
+      "topScore": 0.1069,
+      "correctlySuppressed": true,
+      "retrieved": [
+        {
+          "id": "eq-02",
+          "title": "If you are in bed when shaking starts",
+          "score": 0.1069
+        },
+        {
+          "id": "eq-05",
+          "title": "Aftershocks",
+          "score": 0.0744
+        },
+        {
+          "id": "gen-03",
+          "title": "The go-bag concept",
+          "score": 0.0731
+        },
+        {
+          "id": "eq-04",
+          "title": "Checking for gas leaks after shaking stops",
+          "score": 0.0647
+        }
+      ],
+      "reply": null,
+      "exactFallbackMatch": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "oos-08",
+      "question": "Who won the most recent World Cup?",
+      "topRetrievedId": "wf-01",
+      "topRetrievedTitle": "Creating defensible space around a home",
+      "topScore": 0.0006,
+      "correctlySuppressed": true,
+      "retrieved": [
+        {
+          "id": "wf-01",
+          "title": "Creating defensible space around a home",
+          "score": 0.0006
+        },
+        {
+          "id": "eq-02",
+          "title": "If you are in bed when shaking starts",
+          "score": -0.0074
+        },
+        {
+          "id": "eq-04",
+          "title": "Checking for gas leaks after shaking stops",
+          "score": -0.0101
+        },
+        {
+          "id": "wf-03",
+          "title": "Wildfire smoke and indoor air",
+          "score": -0.0139
+        }
+      ],
+      "reply": null,
+      "exactFallbackMatch": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "oos-09",
+      "question": "Can you write a short poem about the ocean?",
+      "topRetrievedId": "fl-01",
+      "topRetrievedTitle": "Never drive through floodwater",
+      "topScore": 0.1424,
+      "correctlySuppressed": true,
+      "retrieved": [
+        {
+          "id": "fl-01",
+          "title": "Never drive through floodwater",
+          "score": 0.1424
+        },
+        {
+          "id": "fl-02",
+          "title": "Evacuating before a flood",
+          "score": 0.1182
+        },
+        {
+          "id": "fl-05",
+          "title": "Household flood planning",
+          "score": 0.0889
+        },
+        {
+          "id": "storm-02",
+          "title": "Hurricane preparation timeline",
+          "score": 0.08
+        }
+      ],
+      "reply": null,
+      "exactFallbackMatch": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "oos-10",
+      "question": "What's the best programming language to learn in 2026?",
+      "topRetrievedId": "fl-01",
+      "topRetrievedTitle": "Never drive through floodwater",
+      "topScore": 0.0696,
+      "correctlySuppressed": true,
+      "retrieved": [
+        {
+          "id": "fl-01",
+          "title": "Never drive through floodwater",
+          "score": 0.0696
+        },
+        {
+          "id": "fl-04",
+          "title": "Flash flood watches versus warnings",
+          "score": 0.0311
+        },
+        {
+          "id": "fl-05",
+          "title": "Household flood planning",
+          "score": 0.0275
+        },
+        {
+          "id": "storm-02",
+          "title": "Hurricane preparation timeline",
+          "score": 0.0272
+        }
+      ],
+      "reply": null,
+      "exactFallbackMatch": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    }
+  ],
+  "inScopeUncovered": [
+    {
+      "id": "unc-01",
+      "question": "What should I do to prepare for a volcanic eruption?",
+      "topRetrievedId": "eq-01",
+      "topRetrievedTitle": "Drop, Cover, and Hold On",
+      "topScore": 0.3414,
+      "correctlySuppressed": true,
+      "retrieved": [
+        {
+          "id": "eq-01",
+          "title": "Drop, Cover, and Hold On",
+          "score": 0.3414
+        },
+        {
+          "id": "fl-02",
+          "title": "Evacuating before a flood",
+          "score": 0.3403
+        },
+        {
+          "id": "evac-02",
+          "title": "What to bring when evacuating",
+          "score": 0.3321
+        },
+        {
+          "id": "storm-02",
+          "title": "Hurricane preparation timeline",
+          "score": 0.2961
+        }
+      ],
+      "reply": null,
+      "avoidedHardFallback": null,
+      "disclaimedGap": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "unc-02",
+      "question": "How do I prepare my household for a pandemic or major disease outbreak?",
+      "topRetrievedId": "fl-05",
+      "topRetrievedTitle": "Household flood planning",
+      "topScore": 0.4754,
+      "correctlySuppressed": false,
+      "retrieved": [
+        {
+          "id": "fl-05",
+          "title": "Household flood planning",
+          "score": 0.4754
+        },
+        {
+          "id": "gen-01",
+          "title": "Core emergency kit contents",
+          "score": 0.4312
+        },
+        {
+          "id": "storm-01",
+          "title": "Tornado warning: where to shelter",
+          "score": 0.4007
+        },
+        {
+          "id": "gen-05",
+          "title": "Planning for accessibility and medical needs",
+          "score": 0.391
+        }
+      ],
+      "reply": null,
+      "avoidedHardFallback": null,
+      "disclaimedGap": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "unc-03",
+      "question": "What flood insurance should I buy for my home?",
+      "topRetrievedId": "fl-05",
+      "topRetrievedTitle": "Household flood planning",
+      "topScore": 0.5537,
+      "correctlySuppressed": false,
+      "retrieved": [
+        {
+          "id": "fl-05",
+          "title": "Household flood planning",
+          "score": 0.5537
+        },
+        {
+          "id": "fl-01",
+          "title": "Never drive through floodwater",
+          "score": 0.4347
+        },
+        {
+          "id": "fl-02",
+          "title": "Evacuating before a flood",
+          "score": 0.3719
+        },
+        {
+          "id": "fl-04",
+          "title": "Flash flood watches versus warnings",
+          "score": 0.3534
+        }
+      ],
+      "reply": null,
+      "avoidedHardFallback": null,
+      "disclaimedGap": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "unc-04",
+      "question": "How do I purify water if I run out of bottled water during a disaster?",
+      "topRetrievedId": "fl-03",
+      "topRetrievedTitle": "Preparing utilities before a flood",
+      "topScore": 0.4269,
+      "correctlySuppressed": false,
+      "retrieved": [
+        {
+          "id": "fl-03",
+          "title": "Preparing utilities before a flood",
+          "score": 0.4269
+        },
+        {
+          "id": "gen-01",
+          "title": "Core emergency kit contents",
+          "score": 0.4051
+        },
+        {
+          "id": "fl-05",
+          "title": "Household flood planning",
+          "score": 0.3955
+        },
+        {
+          "id": "fl-01",
+          "title": "Never drive through floodwater",
+          "score": 0.3622
+        }
+      ],
+      "reply": null,
+      "avoidedHardFallback": null,
+      "disclaimedGap": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "unc-05",
+      "question": "What should I do to prepare for a nuclear power plant accident?",
+      "topRetrievedId": "gen-01",
+      "topRetrievedTitle": "Core emergency kit contents",
+      "topScore": 0.4438,
+      "correctlySuppressed": false,
+      "retrieved": [
+        {
+          "id": "gen-01",
+          "title": "Core emergency kit contents",
+          "score": 0.4438
+        },
+        {
+          "id": "fl-03",
+          "title": "Preparing utilities before a flood",
+          "score": 0.3902
+        },
+        {
+          "id": "evac-02",
+          "title": "What to bring when evacuating",
+          "score": 0.3553
+        },
+        {
+          "id": "fl-05",
+          "title": "Household flood planning",
+          "score": 0.3493
+        }
+      ],
+      "reply": null,
+      "avoidedHardFallback": null,
+      "disclaimedGap": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    },
+    {
+      "id": "unc-06",
+      "question": "How do I write a disaster response plan for my workplace?",
+      "topRetrievedId": "fl-05",
+      "topRetrievedTitle": "Household flood planning",
+      "topScore": 0.5259,
+      "correctlySuppressed": false,
+      "retrieved": [
+        {
+          "id": "fl-05",
+          "title": "Household flood planning",
+          "score": 0.5259
+        },
+        {
+          "id": "evac-01",
+          "title": "Choosing and knowing an evacuation route",
+          "score": 0.4391
+        },
+        {
+          "id": "gen-04",
+          "title": "Planning for pets and service animals",
+          "score": 0.4116
+        },
+        {
+          "id": "gen-05",
+          "title": "Planning for accessibility and medical needs",
+          "score": 0.4002
+        }
+      ],
+      "reply": null,
+      "avoidedHardFallback": null,
+      "disclaimedGap": null,
+      "llmError": "401 {\"type\":\"error\",\"error\":{\"type\":\"authentication_error\",\"message\":\"API key is invalid.\"},\"request_id\":null}"
+    }
+  ]
+}

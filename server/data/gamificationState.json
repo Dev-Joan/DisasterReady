@@ -1,0 +1,129 @@
+[
+  {
+    "userId": "u_1783458338044",
+    "points": 15,
+    "rank": "Novice",
+    "badges": [],
+    "currentStreak": 1,
+    "longestStreak": 1,
+    "lastActiveDate": "2026-09-16",
+    "dailyTasksCompleted": [
+      {
+        "taskId": "t1",
+        "date": "2026-07-07"
+      }
+    ]
+  },
+  {
+    "userId": "u_1783463533672",
+    "points": 10,
+    "rank": "Novice",
+    "badges": [],
+    "currentStreak": 1,
+    "longestStreak": 1,
+    "lastActiveDate": "2026-07-07",
+    "dailyTasksCompleted": []
+  },
+  {
+    "userId": "u_1785342026573",
+    "points": 0,
+    "rank": "Novice",
+    "badges": [],
+    "currentStreak": 0,
+    "longestStreak": 0,
+    "lastActiveDate": null,
+    "dailyTasksCompleted": []
+  },
+  {
+    "userId": "u_1785342073177",
+    "points": 10,
+    "rank": "Novice",
+    "badges": [],
+    "currentStreak": 2,
+    "longestStreak": 2,
+    "lastActiveDate": "2026-07-30",
+    "dailyTasksCompleted": [
+      {
+        "taskId": "t4",
+        "date": "2026-07-30"
+      }
+    ]
+  },
+  {
+    "userId": "u_1785420554968",
+    "points": 0,
+    "rank": "Novice",
+    "badges": [],
+    "currentStreak": 1,
+    "longestStreak": 1,
+    "lastActiveDate": "2026-07-30",
+    "dailyTasksCompleted": []
+  },
+  {
+    "userId": "u_1785423008442",
+    "points": 0,
+    "rank": "Novice",
+    "badges": [],
+    "currentStreak": 1,
+    "longestStreak": 1,
+    "lastActiveDate": "2026-09-16",
+    "dailyTasksCompleted": []
+  },
+  {
+    "userId": "u_1785424376017",
+    "points": 0,
+    "rank": "Novice",
+    "badges": [],
+    "currentStreak": 1,
+    "longestStreak": 1,
+    "lastActiveDate": "2026-07-30",
+    "dailyTasksCompleted": []
+  },
+  {
+    "userId": "u_1785494269297",
+    "points": 30,
+    "rank": "Novice",
+    "badges": [
+      "flood_kit_hero"
+    ],
+    "currentStreak": 1,
+    "longestStreak": 1,
+    "lastActiveDate": "2026-07-31",
+    "dailyTasksCompleted": []
+  },
+  {
+    "userId": "u_1789554924514",
+    "points": 0,
+    "rank": "Novice",
+    "badges": [],
+    "currentStreak": 1,
+    "longestStreak": 1,
+    "lastActiveDate": "2026-09-16",
+    "dailyTasksCompleted": []
+  },
+  {
+    "userId": "u_1789555763175",
+    "points": 0,
+    "rank": "Novice",
+    "badges": [],
+    "currentStreak": 1,
+    "longestStreak": 1,
+    "lastActiveDate": "2026-09-16",
+    "dailyTasksCompleted": []
+  },
+  {
+    "userId": "u_1789559046390",
+    "points": 10,
+    "rank": "Novice",
+    "badges": [],
+    "currentStreak": 2,
+    "longestStreak": 2,
+    "lastActiveDate": "2026-09-17",
+    "dailyTasksCompleted": [
+      {
+        "taskId": "t1",
+        "date": "2026-09-16"
+      }
+    ]
+  }
+]

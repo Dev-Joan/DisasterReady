@@ -1,0 +1,49 @@
+{
+  "inDomain": [
+    { "id": "id-01", "question": "What's the recommended thing to do if the ground starts shaking while I'm inside a building?", "expectedChunkIds": ["eq-01"] },
+    { "id": "id-02", "question": "If an earthquake happens at night while I'm asleep, should I get up and run somewhere safer?", "expectedChunkIds": ["eq-02"] },
+    { "id": "id-03", "question": "What should I do if I'm driving and an earthquake starts?", "expectedChunkIds": ["eq-03"] },
+    { "id": "id-04", "question": "After the shaking from an earthquake stops, what's the first hazard I should check for?", "expectedChunkIds": ["eq-04"] },
+    { "id": "id-05", "question": "Can more earthquakes happen right after the first one, and should I worry about damaged buildings afterward?", "expectedChunkIds": ["eq-05"] },
+    { "id": "id-06", "question": "How can I earthquake-proof my furniture and shelves before anything happens?", "expectedChunkIds": ["eq-06"] },
+    { "id": "id-07", "question": "Is it okay to drive my car through a flooded road if the water doesn't look too deep?", "expectedChunkIds": ["fl-01"] },
+    { "id": "id-08", "question": "If officials tell me to evacuate because of an approaching flood, how quickly should I leave?", "expectedChunkIds": ["fl-02"] },
+    { "id": "id-09", "question": "Should I turn off my electricity before flood water reaches my house?", "expectedChunkIds": ["fl-03"] },
+    { "id": "id-10", "question": "What's the difference between a flash flood watch and a flash flood warning?", "expectedChunkIds": ["fl-04"] },
+    { "id": "id-11", "question": "What should a family's flood preparedness plan include?", "expectedChunkIds": ["fl-05"] },
+    { "id": "id-12", "question": "How much space should I clear around my house to protect it from wildfire?", "expectedChunkIds": ["wf-01"] },
+    { "id": "id-13", "question": "How do I know when it's time to leave my home because of an approaching wildfire?", "expectedChunkIds": ["wf-02"] },
+    { "id": "id-14", "question": "How can I protect my indoor air quality during a wildfire smoke event?", "expectedChunkIds": ["wf-03"] },
+    { "id": "id-15", "question": "Where's the safest place to go inside my house during a tornado warning?", "expectedChunkIds": ["storm-01"] },
+    { "id": "id-16", "question": "What's the difference between a hurricane watch and a hurricane warning in terms of when I should prepare?", "expectedChunkIds": ["storm-02"] },
+    { "id": "id-17", "question": "How do I know when it's safe to go back outside after a lightning storm?", "expectedChunkIds": ["storm-03"] },
+    { "id": "id-18", "question": "What items should I include in a basic emergency preparedness kit?", "expectedChunkIds": ["gen-01"] },
+    { "id": "id-19", "question": "How do I set up a family emergency communication plan if phone lines get congested?", "expectedChunkIds": ["gen-02"] },
+    { "id": "id-20", "question": "What's a 'go-bag' and what should be inside it?", "expectedChunkIds": ["gen-03"] },
+    { "id": "id-21", "question": "How do I include my pets in my emergency evacuation plan?", "expectedChunkIds": ["gen-04"] },
+    { "id": "id-22", "question": "What should someone who uses a wheelchair or medical equipment plan for in an emergency?", "expectedChunkIds": ["gen-05"] },
+    { "id": "id-23", "question": "How many evacuation routes should my household plan out in advance?", "expectedChunkIds": ["evac-01"] },
+    { "id": "id-24", "question": "What should I grab first if I have to evacuate my home quickly?", "expectedChunkIds": ["evac-02"] },
+    { "id": "id-25", "question": "How do I decide whether to evacuate or just stay inside during an emergency?", "expectedChunkIds": ["evac-03"] }
+  ],
+  "outOfScope": [
+    { "id": "oos-01", "question": "What is the capital of France?" },
+    { "id": "oos-02", "question": "Can you write me a Python function to reverse a string?" },
+    { "id": "oos-03", "question": "What's a good recipe for banana bread?" },
+    { "id": "oos-04", "question": "Should I invest my savings in index funds or individual stocks?" },
+    { "id": "oos-05", "question": "I have a headache, what medication should I take?" },
+    { "id": "oos-06", "question": "My landlord won't return my deposit, what are my legal options?" },
+    { "id": "oos-07", "question": "Tell me a joke." },
+    { "id": "oos-08", "question": "Who won the most recent World Cup?" },
+    { "id": "oos-09", "question": "Can you write a short poem about the ocean?" },
+    { "id": "oos-10", "question": "What's the best programming language to learn in 2026?" }
+  ],
+  "inScopeUncovered": [
+    { "id": "unc-01", "question": "What should I do to prepare for a volcanic eruption?" },
+    { "id": "unc-02", "question": "How do I prepare my household for a pandemic or major disease outbreak?" },
+    { "id": "unc-03", "question": "What flood insurance should I buy for my home?" },
+    { "id": "unc-04", "question": "How do I purify water if I run out of bottled water during a disaster?" },
+    { "id": "unc-05", "question": "What should I do to prepare for a nuclear power plant accident?" },
+    { "id": "unc-06", "question": "How do I write a disaster response plan for my workplace?" }
+  ]
+}

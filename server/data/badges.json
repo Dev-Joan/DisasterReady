@@ -1,0 +1,13 @@
+[
+  { "badgeId": "earthquake_mastered", "title": "Earthquake Topic Mastered", "description": "Reached mastery on earthquake quiz questions." },
+  { "badgeId": "flood_mastered", "title": "Flood Topic Mastered", "description": "Reached mastery on flood quiz questions." },
+  { "badgeId": "rank_prepared", "title": "Prepared Rank", "description": "Reached the Prepared rank." },
+  { "badgeId": "rank_resilient", "title": "Resilient Rank", "description": "Reached the Resilient rank." },
+  { "badgeId": "rank_guardian", "title": "Guardian Rank", "description": "Reached the Guardian rank." },
+  { "badgeId": "streak_7", "title": "7-Day Streak", "description": "Logged in 7 days in a row." },
+  { "badgeId": "flood_kit_hero", "title": "Flood Safety Hero", "description": "Packed the perfect flood emergency kit." },
+  { "badgeId": "knowledge_check_complete", "title": "Knowledge Check Complete", "description": "Completed every chapter of the Knowledge Check." },
+  { "badgeId": "flood_kids", "title": "Flood Hero", "description": "Packed a flood emergency kit perfectly." },
+  { "badgeId": "earthquake_kids", "title": "Quake Hero", "description": "Completed the earthquake kit challenge." },
+  { "badgeId": "fire_kids", "title": "Fire Hero", "description": "Completed the fire escape challenge." }
+]

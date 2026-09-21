@@ -1,0 +1,13 @@
+[
+  { "questionId": "e1", "topic": "earthquake", "difficulty": 1, "text": "During an earthquake, what should you do if you're indoors?", "correctAnswer": "Drop, cover, and hold on", "explanation": "Dropping to the ground and taking cover under sturdy furniture protects you from falling debris." },
+  { "questionId": "e2", "topic": "earthquake", "difficulty": 1, "text": "What should you avoid doing during an earthquake?", "correctAnswer": "Running outside", "explanation": "Running outside during shaking increases risk of injury from falling debris." },
+  { "questionId": "e3", "topic": "earthquake", "difficulty": 2, "text": "Where is the safest place to be during an earthquake if you're in bed?", "correctAnswer": "Stay in bed and cover your head with a pillow", "explanation": "Moving increases injury risk; staying low and protecting your head is safer." },
+  { "questionId": "e4", "topic": "earthquake", "difficulty": 2, "text": "What should be in an earthquake emergency kit?", "correctAnswer": "Water, food, flashlight, first aid supplies", "explanation": "These basics keep you safe if help is delayed." },
+  { "questionId": "e5", "topic": "earthquake", "difficulty": 3, "text": "After an earthquake, what should you check first?", "correctAnswer": "Gas leaks and structural damage", "explanation": "Gas leaks pose fire/explosion risk and should be checked immediately." },
+
+  { "questionId": "f1", "topic": "flood", "difficulty": 1, "text": "What is the safest action if you're told to evacuate before a flood?", "correctAnswer": "Leave immediately via the recommended route", "explanation": "Delaying evacuation increases risk of being trapped by rising water." },
+  { "questionId": "f2", "topic": "flood", "difficulty": 1, "text": "Why should you avoid walking through flood water?", "correctAnswer": "It may be deeper or faster-moving than it appears", "explanation": "Flood water can conceal hazards and sweep people away." },
+  { "questionId": "f3", "topic": "flood", "difficulty": 2, "text": "What should you do with electrical appliances before a flood?", "correctAnswer": "Turn off and unplug them", "explanation": "Prevents electrocution risk and fire hazards from water damage." },
+  { "questionId": "f4", "topic": "flood", "difficulty": 2, "text": "Why should you avoid driving through floodwater?", "correctAnswer": "Cars can be swept away in shallow-looking water", "explanation": "Most flood deaths involve vehicles." },
+  { "questionId": "f5", "topic": "flood", "difficulty": 3, "text": "What's a key step in a household flood plan?", "correctAnswer": "Identify an evacuation route and higher ground", "explanation": "Knowing where to go in advance saves critical time." }
+]

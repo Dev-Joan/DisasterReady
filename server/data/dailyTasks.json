@@ -1,0 +1,7 @@
+[
+  { "taskId": "t1", "title": "Check your emergency kit", "description": "Make sure your emergency kit has water, food, and a flashlight.", "hazardTopic": "general", "pointsAwarded": 10 },
+  { "taskId": "t2", "title": "Review your evacuation route", "description": "Walk through your household's evacuation plan.", "hazardTopic": "general", "pointsAwarded": 10 },
+  { "taskId": "t3", "title": "Test your flashlight", "description": "Check that your flashlight and batteries work.", "hazardTopic": "general", "pointsAwarded": 5 },
+  { "taskId": "t4", "title": "Locate your gas shutoff", "description": "Confirm you know where and how to shut off your gas.", "hazardTopic": "earthquake", "pointsAwarded": 10 },
+  { "taskId": "t5", "title": "Identify higher ground nearby", "description": "Know where you'd go if flooding started in your area.", "hazardTopic": "flood", "pointsAwarded": 10 }
+]

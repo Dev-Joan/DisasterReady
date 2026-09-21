@@ -1,0 +1,60 @@
+{
+  "u_1783458338044": {
+    "earthquake": {
+      "history": [
+        true,
+        true
+      ],
+      "currentDifficulty": 1,
+      "mastered": false
+    }
+  },
+  "u_1783463533672": {
+    "earthquake": {
+      "history": [],
+      "currentDifficulty": 1,
+      "mastered": false
+    },
+    "flood": {
+      "history": [
+        true,
+        true
+      ],
+      "currentDifficulty": 1,
+      "mastered": false
+    }
+  },
+  "u_1785423008442": {
+    "flood": {
+      "history": [],
+      "currentDifficulty": 1,
+      "mastered": false
+    }
+  },
+  "u_1785494269297": {
+    "earthquake": {
+      "history": [],
+      "currentDifficulty": 1,
+      "mastered": false
+    }
+  },
+  "u_1789555763175": {
+    "flood": {
+      "history": [],
+      "currentDifficulty": 1,
+      "mastered": false
+    },
+    "earthquake": {
+      "history": [],
+      "currentDifficulty": 1,
+      "mastered": false
+    }
+  },
+  "u_1789559046390": {
+    "earthquake": {
+      "history": [],
+      "currentDifficulty": 1,
+      "mastered": false
+    }
+  }
+}

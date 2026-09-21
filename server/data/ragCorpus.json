@@ -1,0 +1,152 @@
+[
+  {
+    "id": "eq-01",
+    "topic": "earthquake",
+    "title": "Drop, Cover, and Hold On",
+    "text": "During earthquake shaking, the recommended action indoors is Drop, Cover, and Hold On: drop to your hands and knees so the shaking doesn't knock you down, take cover under a sturdy table or desk (or against an interior wall away from windows if no cover is available), and hold on to your shelter until the shaking stops. Do not run outside during shaking — most injuries happen from falling objects and debris while people are moving."
+  },
+  {
+    "id": "eq-02",
+    "topic": "earthquake",
+    "title": "If you are in bed when shaking starts",
+    "text": "If an earthquake starts while you are in bed, stay there. Turn face down and cover your head and neck with a pillow. Getting up and moving toward a doorway or another room increases the chance of injury from falling objects, broken glass, or losing balance during strong shaking."
+  },
+  {
+    "id": "eq-03",
+    "topic": "earthquake",
+    "title": "Earthquakes and moving vehicles",
+    "text": "If you are driving when an earthquake hits, pull over to a clear location away from buildings, overpasses, bridges, and power lines, then stop and stay inside the vehicle with your seatbelt on until the shaking stops. Avoid stopping under or on structures that could collapse or be damaged."
+  },
+  {
+    "id": "eq-04",
+    "topic": "earthquake",
+    "title": "Checking for gas leaks after shaking stops",
+    "text": "After shaking stops, check your immediate surroundings before moving further. If you smell gas, hear a hissing sound, or see a broken gas line, leave the area immediately, avoid using anything that could create a spark (including light switches), and shut off the main gas valve if you know how and it is safe to do so. Report the leak from a safe distance once outside."
+  },
+  {
+    "id": "eq-05",
+    "topic": "earthquake",
+    "title": "Aftershocks",
+    "text": "Aftershocks — smaller earthquakes that follow the main shock — can happen minutes, days, or even weeks later, and some can be strong enough to cause additional damage to already-weakened structures. After the initial shaking stops, treat any building with visible cracks, leaning walls, or structural damage as unsafe until it has been inspected, and be ready to Drop, Cover, and Hold On again if another aftershock occurs."
+  },
+  {
+    "id": "eq-06",
+    "topic": "earthquake",
+    "title": "Securing your home before an earthquake",
+    "text": "Reducing earthquake risk before it happens includes anchoring heavy furniture such as bookcases and water heaters to wall studs, securing top-heavy items so they cannot tip, and moving heavy or breakable objects off high shelves, especially near beds and seating areas. This reduces the number of falling-object hazards during shaking, which is the leading cause of earthquake injury indoors."
+  },
+  {
+    "id": "fl-01",
+    "topic": "flood",
+    "title": "Never drive through floodwater",
+    "text": "Most flood-related deaths involve vehicles. Just six inches of fast-moving water can knock over an adult, and one to two feet of moving water can carry away most cars, including SUVs and trucks. Floodwater also frequently hides road damage, downed power lines, and strong currents that are impossible to judge by sight. The guidance is simple: Turn Around, Don't Drown — never attempt to drive or walk through flooded roads."
+  },
+  {
+    "id": "fl-02",
+    "topic": "flood",
+    "title": "Evacuating before a flood",
+    "text": "When authorities issue an evacuation order ahead of a flood, leave immediately using the designated evacuation route rather than waiting to see how bad conditions get. Waters can rise faster than expected, and delaying evacuation risks becoming trapped by rising water or blocked routes. Move to higher ground and avoid shortcuts through areas you don't know, since floodwater can make a normally safe route impassable or dangerous."
+  },
+  {
+    "id": "fl-03",
+    "topic": "flood",
+    "title": "Preparing utilities before a flood",
+    "text": "Before floodwater reaches a building, turn off electricity at the main breaker if it is safe to do so, and unplug electrical appliances. Water and electricity together create a serious electrocution and fire risk. If you are standing in water, do not touch electrical equipment, and never turn power back on in a flooded building until it has been inspected and declared safe."
+  },
+  {
+    "id": "fl-04",
+    "topic": "flood",
+    "title": "Flash flood watches versus warnings",
+    "text": "A flash flood watch means conditions are favorable for flash flooding in and near the area — it is time to review your evacuation plan and stay alert. A flash flood warning means flash flooding is imminent or already occurring — it is time to move to higher ground immediately. Flash floods can develop within minutes of heavy rainfall, so warnings require immediate action rather than a wait-and-see approach."
+  },
+  {
+    "id": "fl-05",
+    "topic": "flood",
+    "title": "Household flood planning",
+    "text": "A basic household flood plan should identify a specific evacuation route and a nearby area of higher ground, agree on an out-of-area contact everyone in the household will check in with, and keep important documents (identification, insurance papers, medical records) in a waterproof and portable container so they can be grabbed quickly if evacuation is needed."
+  },
+  {
+    "id": "wf-01",
+    "topic": "wildfire",
+    "title": "Creating defensible space around a home",
+    "text": "Defensible space is the buffer zone cleared of flammable vegetation and debris around a structure that slows or stops the spread of wildfire. Recommended practice is to keep the area within 5 feet of the home clear of anything combustible, remove dead leaves and branches from the ground and roof/gutters, and thin out dense vegetation within 30 feet, since embers and radiant heat from nearby fire are common causes of home ignition."
+  },
+  {
+    "id": "wf-02",
+    "topic": "wildfire",
+    "title": "When to evacuate for wildfire",
+    "text": "Do not wait for a mandatory evacuation order if a wildfire is close, visibility is poor from smoke, or officials have issued an evacuation warning for your area — leave earlier if you can, since fire behavior can change quickly with wind shifts and roads can become congested or blocked. Keep vehicles fueled and packed with a go-bag during high fire-risk periods so you are not caught preparing at the last minute."
+  },
+  {
+    "id": "wf-03",
+    "topic": "wildfire",
+    "title": "Wildfire smoke and indoor air",
+    "text": "During wildfire smoke events, stay indoors with windows and doors closed, run air conditioning on recirculate mode if available, and avoid activities that add more particles to indoor air such as burning candles or frying food. If air quality is hazardous and you must go outside, an N95 or better-rated respirator mask provides more protection than a cloth or surgical mask against fine smoke particles."
+  },
+  {
+    "id": "storm-01",
+    "topic": "severe_storm",
+    "title": "Tornado warning: where to shelter",
+    "text": "When a tornado warning is issued, go to the lowest level of a sturdy building, into a small interior room such as a bathroom or closet, away from windows, doors, and outside walls. If no sturdy building is available and you are in a vehicle or mobile home, seek a sturdy structure nearby; as a last resort, lie flat in a low-lying area such as a ditch and cover your head, but this carries real risk and is not a substitute for shelter."
+  },
+  {
+    "id": "storm-02",
+    "topic": "severe_storm",
+    "title": "Hurricane preparation timeline",
+    "text": "Once a hurricane watch is issued (hurricane conditions possible within 48 hours), finalize evacuation plans, fuel vehicles, and secure loose outdoor items that could become projectiles in high wind. Once a hurricane warning is issued (hurricane conditions expected within 36 hours), complete final preparations and follow local evacuation orders promptly rather than waiting to see the storm's exact path, since conditions can deteriorate before landfall."
+  },
+  {
+    "id": "storm-03",
+    "topic": "severe_storm",
+    "title": "Lightning safety: the 30-30 rule",
+    "text": "If you can hear thunder, you are close enough to be struck by lightning. A commonly used guideline is the 30-30 rule: seek shelter if the time between seeing lightning and hearing thunder is 30 seconds or less, and wait at least 30 minutes after the last thunderclap before resuming outdoor activity. Substantial buildings or hard-topped vehicles are safe shelter; open fields, isolated trees, and bodies of water are not."
+  },
+  {
+    "id": "gen-01",
+    "topic": "general_prep",
+    "title": "Core emergency kit contents",
+    "text": "A basic emergency kit should cover at least 72 hours per person and typically includes: one gallon of water per person per day, non-perishable food, a manual can opener, a flashlight with spare batteries, a first aid kit, any needed prescription medications, a battery-powered or hand-crank radio, a whistle to signal for help, and copies of important documents in a waterproof bag. Kits should be checked and refreshed at least once a year, since batteries and food expire."
+  },
+  {
+    "id": "gen-02",
+    "topic": "general_prep",
+    "title": "Building a family communication plan",
+    "text": "A family communication plan should include an out-of-area contact that all household members can reach even if local phone lines are congested, since long-distance calls or texts often get through when local calls do not. It should also specify a meeting place near the home and another outside the neighborhood in case evacuation is needed, and should be practiced periodically so that children and older family members know what to do without needing a phone."
+  },
+  {
+    "id": "gen-03",
+    "topic": "general_prep",
+    "title": "The go-bag concept",
+    "text": "A go-bag is a smaller, grab-and-go version of an emergency kit meant to sustain one person for about 24 to 72 hours if you need to leave quickly. It typically includes water, snacks, a change of clothes, a phone charger or power bank, basic toiletries, any critical medication, a small first aid kit, and copies of key documents. Keeping it packed and by the door means you are not searching for items under pressure during an actual evacuation."
+  },
+  {
+    "id": "gen-04",
+    "topic": "general_prep",
+    "title": "Planning for pets and service animals",
+    "text": "Emergency plans should explicitly account for pets, since many public shelters do not accept animals except service animals. Keep a pet-specific kit with food, water, a leash or carrier, vaccination records, and any medication, and research pet-friendly shelters or hotels along your evacuation route in advance rather than during an emergency, when options fill up quickly."
+  },
+  {
+    "id": "gen-05",
+    "topic": "general_prep",
+    "title": "Planning for accessibility and medical needs",
+    "text": "Households that include a person with a disability, mobility limitation, or a reliance on medical equipment (such as powered wheelchairs, oxygen concentrators, or refrigerated medication) should build backup power or battery plans for that equipment, keep a list of medications and dosages, and identify accessible evacuation routes and shelters in advance, since not every emergency shelter is equipped to accommodate every need."
+  },
+  {
+    "id": "evac-01",
+    "topic": "evacuation",
+    "title": "Choosing and knowing an evacuation route",
+    "text": "Households should identify at least two possible evacuation routes from their home and neighborhood in advance, since a single planned route can become blocked by debris, flooding, or heavy traffic. Practice the route in advance if possible, note alternate routes on a paper map as a backup to phone-based navigation (which can fail if cell networks are overloaded), and agree on a rally point in case household members become separated."
+  },
+  {
+    "id": "evac-02",
+    "topic": "evacuation",
+    "title": "What to bring when evacuating",
+    "text": "When evacuating, prioritize your go-bag, identification and important documents, medications, phone and charger, cash (card payment systems may be unavailable), and comfort items for children if applicable. Do not delay departure to gather non-essential belongings — evacuation orders exist because officials expect conditions to worsen, and the time saved by leaving promptly is more valuable than most possessions."
+  },
+  {
+    "id": "evac-03",
+    "topic": "evacuation",
+    "title": "Sheltering in place versus evacuating",
+    "text": "Not every emergency requires evacuation; some situations (such as certain chemical releases or brief severe weather) are safer to shelter in place for, sealing windows and doors and staying indoors until authorities say it is safe. The decision to evacuate versus shelter in place should generally follow official guidance from local emergency management, since they have information about the specific hazard's behavior that residents typically do not."
+  }
+]
