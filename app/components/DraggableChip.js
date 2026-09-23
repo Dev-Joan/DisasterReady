@@ -15,7 +15,7 @@ import { useAccessibility } from '../context/AccessibilityContext';
 // release) is what's reduced: with reduced motion on, grab/release snap
 // instantly to their target value instead of springing, so the chip still
 // ends up in the right place with zero added overshoot motion.
-export default function DraggableChip({ children, style, disabled, onDrop }) {
+export default function DraggableChip({ children, style, disabled, onDrop, onGrab }) {
   const { settings } = useAccessibility();
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
@@ -31,6 +31,7 @@ export default function DraggableChip({ children, style, disabled, onDrop }) {
     .onBegin(() => {
       settle(scale, 1.1);
       runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light);
+      if (onGrab) runOnJS(onGrab)();
     })
     .onUpdate((e) => {
       translateX.value = e.translationX;

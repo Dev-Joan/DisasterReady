@@ -12,6 +12,7 @@ import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 import EmptyState from '../components/EmptyState';
 import CountUpNumber from '../components/CountUpNumber';
+import StackReveal from '../components/StackReveal';
 import { REGION_COUNTRIES } from '../constants/regions';
 import { getBadgeInfo } from '../constants/badges';
 import { SPACING, TYPE, RADII, getElevation, AGE_PALETTES } from '../constants/tokens';
@@ -195,11 +196,11 @@ export default function ProfileScreen({ navigation }) {
               {badges.map((badgeId, index) => {
                 const info = getBadgeInfo(badgeId);
                 return (
-                  <Animated.View key={badgeId} entering={FadeInDown.delay(Math.min(index, 10) * 70).duration(340)} style={[styles.badgeCard, { backgroundColor: theme.card, borderColor: theme.border }]} accessibilityLabel={`${info.title}: ${info.description}`}>
+                  <StackReveal key={badgeId} index={Math.min(index, 10)} style={[styles.badgeCard, { backgroundColor: theme.card, borderColor: theme.border }]} accessibilityLabel={`${info.title}: ${info.description}`}>
                     <Text style={styles.badgeEmoji}>{info.emoji}</Text>
                     <Text style={[styles.badgeTitle, { color: theme.text }]}>{info.title}</Text>
                     <Text style={[styles.badgeDesc, { color: theme.textSub }]}>{info.description}</Text>
-                  </Animated.View>
+                  </StackReveal>
                 );
               })}
             </View>

@@ -14,6 +14,9 @@ export const BADGE_CATALOG = {
   sequence_hero: { emoji: '📋', title: 'Sequence Hero', description: 'Put every earthquake safety step in the right order.' },
   safehouse_hero: { emoji: '🏠', title: 'Safe House Hero', description: 'Built a fire-safe room and passed the test.' },
   dispatch_hero: { emoji: '📞', title: 'Dispatch Hero', description: 'Triaged emergencies and sent a clear, correct message.' },
+  safe_spot_hero: { emoji: '🔎', title: 'Safe Spot Hero', description: 'Found every hidden hazard and aced the Drop, Cover, Hold drill.' },
+  hazard_hero: { emoji: '🏃', title: 'Hazard Hero', description: 'Escaped the smoke-filled building, dodging water and live wires.' },
+  scenario_strategist: { emoji: '🧭', title: 'Scenario Strategist', description: 'Made the right call under pressure in the timed scenario challenge.' },
   family_planner: { emoji: '👨‍👩‍👧‍👦', title: 'Family Planner', description: 'Built a real family emergency plan.' }
 };
 

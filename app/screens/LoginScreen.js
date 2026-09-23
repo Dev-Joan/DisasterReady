@@ -33,15 +33,25 @@ export default function LoginScreen({ navigation }) {
     }
   };
 
+  // Real Apple/Google sign-in needs credentials this environment can't
+  // supply on its own: an Apple Developer Program membership with "Sign In
+  // with Apple" enabled for a registered bundle ID, and a Google Cloud
+  // project with OAuth client IDs (plus Android signing SHA-1
+  // fingerprints). Both also require a native build (EAS/dev client) since
+  // neither works in Expo Go. These buttons are an honest placeholder
+  // until that setup exists — not a stub pretending to authenticate.
   const handleSocialLogin = (provider) => {
-    Alert.alert('Not available', `${provider} sign-in is not available in this prototype. Please use username and password.`);
+    Alert.alert(
+      `${provider} Sign-In — Not Yet Configured`,
+      `Real ${provider} sign-in needs developer account setup (an ${provider === 'Apple' ? 'Apple Developer Program membership' : 'Google Cloud OAuth project'}) that hasn't been provided yet. Please use username and password for now.`
+    );
   };
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
       <Animated.Image entering={ZoomIn.duration(420)} source={require('../assets/icon.png')} style={styles.logo} />
-      <Animated.View entering={FadeInDown.delay(100).duration(360)}>
-        <Text style={styles.appName}>DisasterReady</Text>
+      <Animated.View entering={FadeInDown.delay(100).duration(360)} style={styles.titleBlock}>
+        <Text style={styles.appName}>DisasteReady</Text>
         <Text style={styles.tagline}>Your Disaster Preparedness Companion</Text>
       </Animated.View>
 
@@ -82,13 +92,14 @@ export default function LoginScreen({ navigation }) {
       <Text style={styles.orText}>or continue with</Text>
 
       <View style={styles.socialRow}>
-        <TouchableOpacity style={styles.socialButton} onPress={() => handleSocialLogin('Google')}>
+        <TouchableOpacity style={styles.socialButton} onPress={() => handleSocialLogin('Google')} accessibilityRole="button" accessibilityLabel="Continue with Google, not yet configured">
           <Text style={styles.socialButtonText}>Google</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.socialButton} onPress={() => handleSocialLogin('Apple')}>
+        <TouchableOpacity style={styles.socialButton} onPress={() => handleSocialLogin('Apple')} accessibilityRole="button" accessibilityLabel="Continue with Apple, not yet configured">
           <Text style={styles.socialButtonText}>Apple</Text>
         </TouchableOpacity>
       </View>
+      <Text style={styles.socialCaption}>Not yet configured — requires developer account setup. See project notes.</Text>
 
       <TouchableOpacity
         onPress={() => navigation.navigate('Signup')}
@@ -112,8 +123,9 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: SLATE },
   container: { padding: SPACING.xxl, alignItems: 'center' },
   logo: { width: 110, height: 110, marginTop: SPACING.xxl, marginBottom: SPACING.md, borderRadius: RADII.teen.card + 10 },
-  appName: { fontSize: TYPE.display.fontSize, fontWeight: 'bold', color: '#F8FAFC' },
-  tagline: { fontSize: TYPE.body.fontSize - 1, color: '#94A3B8', marginBottom: SPACING.xxl },
+  titleBlock: { alignItems: 'center', width: '100%' },
+  appName: { fontSize: TYPE.display.fontSize, fontWeight: 'bold', color: '#F8FAFC', textAlign: 'center' },
+  tagline: { fontSize: TYPE.body.fontSize - 1, color: '#94A3B8', marginBottom: SPACING.xxl, textAlign: 'center' },
   card: { width: '100%', backgroundColor: CARD, borderRadius: RADII.teen.card + 2, padding: SPACING.xl, marginBottom: SPACING.xxl },
   cardTitle: { fontSize: TYPE.title.fontSize, fontWeight: 'bold', color: '#F8FAFC', marginBottom: SPACING.lg },
   input: {
@@ -129,6 +141,7 @@ const styles = StyleSheet.create({
   socialRow: { flexDirection: 'row', width: '100%', justifyContent: 'space-between', marginBottom: SPACING.xl },
   socialButton: { width: '48%', backgroundColor: CARD, borderRadius: RADII.teen.button - 4, padding: SPACING.md + 2, alignItems: 'center' },
   socialButtonText: { color: '#F8FAFC', fontWeight: 'bold' },
+  socialCaption: { fontSize: TYPE.caption.fontSize - 1, color: '#475569', textAlign: 'center', marginTop: -SPACING.md, marginBottom: SPACING.xl },
   signupLink: { color: '#94A3B8', fontSize: TYPE.body.fontSize - 1, marginBottom: SPACING.lg },
   signupLinkBold: { color: SIGNAL, fontWeight: 'bold' },
   privacyNote: { fontSize: TYPE.caption.fontSize - 1, color: '#475569', textAlign: 'center', lineHeight: 16, marginBottom: SPACING.xxl }

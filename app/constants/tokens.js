@@ -109,14 +109,23 @@ export const AGE_PALETTES = {
     background: '#FFF8ED'
   },
   teen: {
-    slate: '#0F172A',
-    teal: '#0EA5E9',
-    indigo: '#4F46E5',
-    coral: '#FF6B6B',
+    // A deliberate dark, high-energy identity (think Duolingo/gaming UI),
+    // not a light theme with a couple of colored borders — this is what
+    // makes teen screens read as their own thing rather than the adult
+    // theme with accent colors sprinkled on top.
+    slate: '#0F172A', // page background
+    base: '#1E293B', // card/surface background — one step lighter than slate for real depth
+    baseAlt: '#293548', // a slightly lighter surface for pressed/selected states
+    border: '#334155', // card borders/dividers against the dark background
+    teal: '#2DD4BF', // electric teal — genuinely teal, not blue
+    tealDeep: '#0F9488', // darker teal for 3D button edges / pressed states
+    indigo: '#4338CA', // deep indigo
+    coral: '#FF6B57', // punchy coral
     text: '#F8FAFC',
-    primary: '#0EA5E9',
-    secondary: '#4F46E5',
-    accent: '#FF6B6B',
+    textSub: '#94A3B8',
+    primary: '#2DD4BF',
+    secondary: '#4338CA',
+    accent: '#FF6B57',
     background: '#0F172A'
   },
   adult: {

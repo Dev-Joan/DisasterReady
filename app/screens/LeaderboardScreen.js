@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import Text from '../components/Text';
 import { useFocusEffect } from '@react-navigation/native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import apiRequest from '../services/api';
 import { useUser } from '../context/UserContext';
 import { useTheme } from '../context/ThemeContext';
@@ -10,6 +9,7 @@ import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 import EmptyState from '../components/EmptyState';
 import CountUpNumber from '../components/CountUpNumber';
+import StackReveal from '../components/StackReveal';
 import { SPACING, TYPE, RADII, getElevation, AGE_PALETTES, SEMANTIC } from '../constants/tokens';
 
 export default function LeaderboardScreen() {
@@ -45,9 +45,9 @@ export default function LeaderboardScreen() {
       <Text style={[styles.subtitle, { color: theme.textSub }]}>Top preparedness champions</Text>
 
       {leaderboard.map((entry, index) => (
-        <Animated.View
+        <StackReveal
           key={entry.userId}
-          entering={FadeInDown.delay(Math.min(index, 14) * 60).duration(340)}
+          index={Math.min(index, 14)}
           style={[styles.row, { backgroundColor: theme.card, borderColor: theme.border }, entry.userId === userId && styles.rowHighlight]}
         >
           <Text style={styles.medal}>{medals[index] || `${index + 1}.`}</Text>
@@ -58,7 +58,7 @@ export default function LeaderboardScreen() {
             <Text style={[styles.rowRank, { color: theme.textSub }]}>{entry.rank}</Text>
           </View>
           <CountUpNumber value={entry.points} suffix=" XP" style={styles.rowPoints} />
-        </Animated.View>
+        </StackReveal>
       ))}
 
       {leaderboard.length === 0 && (

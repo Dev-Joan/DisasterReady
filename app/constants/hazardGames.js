@@ -100,17 +100,3 @@ export const HAZARD_DATA = {
   }
 };
 
-export const HAZARD_LEVELS = [
-  { id: 1, title: 'Pack Fast!', emoji: '🎒', time: 90, mode: 'drag', desc: 'Tap the right items into your bag before time runs out!' },
-  { id: 2, title: 'The Hidden Kit', emoji: '🔍', time: 120, mode: 'explore', desc: 'Search the room! Kit items are hidden in the furniture.' },
-  { id: 3, title: 'Safety Detective', emoji: '🕵️', time: 90, mode: 'detective', desc: 'Find and fix the dangers hiding in the house!' },
-  { id: 4, title: 'Escape Run!', emoji: '🏃', time: 0, mode: 'runner', desc: 'Run to safety! Grab items, dodge dangers, choose safe paths!' }
-];
-
-// One extra, hazard-specific mission per family — each teaches a distinct
-// skill through its own mechanic instead of reskinning "tap the right item".
-export const BONUS_MISSIONS = {
-  flood: { screen: 'EscapeRoute', title: 'Escape Route Architect', emoji: '🗺️', desc: 'Trace a path to high ground before the water gets there!' },
-  earthquake: { screen: 'StepSorter', title: 'Step Sorter', emoji: '📋', desc: 'Put the safety steps in the right order!' },
-  fire: { screen: 'SafeHouse', title: 'Build-It Safe House', emoji: '🏠', desc: 'Place items around the house, then test it for fire safety!' }
-};

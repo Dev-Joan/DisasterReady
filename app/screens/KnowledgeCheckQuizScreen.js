@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Text from '../components/Text';
 import { useAudioPlayer } from 'expo-audio';
 import * as Haptics from 'expo-haptics';
@@ -62,6 +63,7 @@ export default function KnowledgeCheckQuizScreen({ route, navigation }) {
   const { theme } = useTheme();
   const { userId } = useUser();
   const { settings: a11y } = useAccessibility();
+  const insets = useSafeAreaInsets();
   const { chapterId } = route.params;
   const chapter = getChapterById(chapterId) || KNOWLEDGE_CHECK_CHAPTERS[0];
   const questions = chapter.questions;
@@ -126,7 +128,7 @@ export default function KnowledgeCheckQuizScreen({ route, navigation }) {
     const justCompletedAll = completion?.justCompletedAll;
 
     return (
-      <View style={[styles.doneScreen, { backgroundColor: theme.bg }]}>
+      <SafeAreaView style={[styles.doneScreen, { backgroundColor: theme.bg }]} edges={['top', 'bottom']}>
         <Animated.View entering={ZoomIn.springify().damping(9).delay(100)} style={styles.trophyCircle}>
           <MaterialCommunityIcons name="trophy" size={56} color="#fff" />
         </Animated.View>
@@ -166,13 +168,13 @@ export default function KnowledgeCheckQuizScreen({ route, navigation }) {
             <Text style={styles.continueBtnText}>BACK TO CHAPTERS</Text>
           </AnimatedPressable>
         </Animated.View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.bg }]}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Pressable
           onPress={() => navigation.goBack()}
           style={touchTargetStyle(a11y, 24)}
@@ -211,7 +213,7 @@ export default function KnowledgeCheckQuizScreen({ route, navigation }) {
       </ScrollView>
 
       {checked && (
-        <Animated.View entering={SlideInDown.springify().damping(16)} exiting={SlideOutDown} style={[styles.feedbackBar, { backgroundColor: wasCorrect ? SUCCESS : ERROR }]}>
+        <Animated.View entering={SlideInDown.springify().damping(16)} exiting={SlideOutDown} style={[styles.feedbackBar, { backgroundColor: wasCorrect ? SUCCESS : ERROR, paddingBottom: SPACING.xxl + 4 + insets.bottom }]}>
           <Text style={styles.feedbackTitle}>{wasCorrect ? '✅ Correct!' : '❌ Not quite'}</Text>
           <Text style={styles.feedbackText}>{q.explain}</Text>
           <Pressable
@@ -227,7 +229,7 @@ export default function KnowledgeCheckQuizScreen({ route, navigation }) {
       )}
 
       {!checked && (
-        <View style={styles.checkBar}>
+        <View style={[styles.checkBar, { paddingBottom: SPACING.lg + insets.bottom }]}>
           <Pressable
             style={[styles.checkBtn, selected === null && styles.checkBtnDisabled, touchTargetStyle(a11y, 44)]}
             disabled={selected === null}

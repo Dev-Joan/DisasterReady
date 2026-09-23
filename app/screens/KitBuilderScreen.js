@@ -1,166 +1,268 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
-  useSharedValue, useAnimatedStyle, withSpring, withSequence, withTiming,
-  withRepeat
+  useSharedValue, useAnimatedStyle, withSpring, withSequence, withTiming, withRepeat, withDelay,
+  interpolateColor, Easing, ZoomIn
 } from 'react-native-reanimated';
 import { useAudioPlayer } from 'expo-audio';
 import * as Haptics from 'expo-haptics';
+import Text from '../components/Text';
 import apiRequest from '../services/api';
 import { useUser } from '../context/UserContext';
-import { HAZARD_DATA, HAZARD_LEVELS, BONUS_MISSIONS } from '../constants/hazardGames';
+import { HAZARD_DATA } from '../constants/hazardGames';
 import { useAccessibility, touchTargetProps } from '../context/AccessibilityContext';
 import BouncyPress from '../components/BouncyPress';
 import BouncyMascot from '../components/BouncyMascot';
+import DraggableChip from '../components/DraggableChip';
 import Celebration from '../components/Celebration';
+import BadgeUnlockOverlay from '../components/BadgeUnlockOverlay';
+import useBadgeUnlock from '../hooks/useBadgeUnlock';
 
-const SCREEN = Dimensions.get('window');
+// Game 1 of 4 in the "genuinely distinct mini games" set: KIT BUILDER —
+// PACK & PROTECT. The one skill this teaches is knowing what belongs in an
+// emergency kit. The one mechanic that teaches it is real 1:1 drag-and-drop
+// (via DraggableChip's Pan gesture) onto a single glowing drop zone — no
+// tapping, no menus, no sub-levels. That's the deliberate contrast with the
+// other three games (hidden-object + drill, grid-maze swiping, voice-call
+// role-play): each teaches its skill through a mechanic none of the others
+// share.
+const ROUND_TIME = 75;
+const DROP_PAD = 30; // generous hit-test margin around the bag — dragging onto a moving finger target on a phone should feel forgiving, not precise
 
 const packSound = require('../assets/sounds/pack.wav');
 const wrongSound = require('../assets/sounds/wrong.wav');
 const winSound = require('../assets/sounds/win.wav');
 const tickSound = require('../assets/sounds/tick.wav');
 
-const ROOM_SLOTS = [
-  { type: 'shelf', x: 20, y: 90 },
-  { type: 'shelf', x: 210, y: 150 },
-  { type: 'window', x: 250, y: 70 },
-  { type: 'bed', x: 30, y: 340 },
-  { type: 'lamp', x: 250, y: 330 },
-  { type: 'toybox', x: 150, y: 430 },
-  { type: 'plant', x: 30, y: 250 },
-  { type: 'dresser', x: 220, y: 430 },
-  { type: 'toybox', x: 30, y: 430 }
-];
+// A bright, rotating ring color per shelf slot (not per hazard) — the
+// point is visual variety across the shelf itself, like a toy chest, so
+// every card doesn't read as the same pastel square.
+const RING_COLORS = ['#FBBF24', '#60A5FA', '#F472B6', '#34D399', '#A78BFA', '#FB923C'];
 
-function ItemCard({ item, packed, onTap, wrong }) {
-  const shake = useSharedValue(0);
-  const pop = useSharedValue(1);
+// Thematic drifting background particles per hazard — purely decorative
+// scene-setting, distinct per hazard so Pack & Protect doesn't look
+// identical across flood/earthquake/fire.
+const HAZARD_BITS = {
+  flood: ['💧', '🫧', '💦'],
+  earthquake: ['🍃', '⭐', '✨'],
+  fire: ['✨', '🔥', '💫']
+};
+
+// Correct/wrong feedback fires often during a round — kept quick and
+// subtle (small scale bump, no spring) rather than a big pop each time.
+const answerFeedbackEntering = ZoomIn.duration(120).withInitialValues({ transform: [{ scale: 0.94 }] });
+
+function computeStars(timeLeft, mistakes, total) {
+  if (mistakes === 0 && timeLeft > total * 0.4) return 3;
+  if (mistakes <= 2 && timeLeft > total * 0.15) return 2;
+  return 1;
+}
+
+// Slow-drifting emoji rising behind the whole play area. Ambient/looping,
+// so (like BouncyMascot/Celebration) it checks reducedMotion directly
+// instead of relying on the app-wide entering/exiting switch.
+function FloatingBit({ emoji, left, size, delay, duration }) {
+  const t = useSharedValue(0);
 
   useEffect(() => {
-    if (wrong) {
-      shake.value = withSequence(
-        withTiming(-8, { duration: 50 }), withTiming(8, { duration: 50 }),
-        withTiming(-6, { duration: 50 }), withTiming(0, { duration: 50 }));
-    }
-  }, [wrong]);
+    t.value = withDelay(delay, withRepeat(withTiming(1, { duration, easing: Easing.linear }), -1, false));
+  }, []);
 
-  useEffect(() => { if (packed) pop.value = withSequence(withSpring(1.1), withSpring(1)); }, [packed]);
+  const style = useAnimatedStyle(() => ({
+    transform: [
+      { translateY: 420 - t.value * 480 },
+      { translateX: Math.sin(t.value * Math.PI * 2) * 14 }
+    ],
+    opacity: t.value < 0.1 ? t.value * 10 : t.value > 0.85 ? (1 - t.value) / 0.15 : 0.8
+  }));
 
-  const style = useAnimatedStyle(() => ({ transform: [{ translateX: shake.value }, { scale: pop.value }] }));
-  const { settings: a11y } = useAccessibility();
+  return <Animated.Text pointerEvents="none" style={[styles.floatingBit, { left: `${left}%`, fontSize: size }, style]}>{emoji}</Animated.Text>;
+}
 
+function FloatingBits({ hazardKey }) {
+  const { settings } = useAccessibility();
+  const bits = useRef(
+    Array.from({ length: 8 }).map((_, i) => {
+      const emojiSet = HAZARD_BITS[hazardKey] || HAZARD_BITS.flood;
+      return {
+        emoji: emojiSet[i % emojiSet.length],
+        left: 6 + Math.random() * 85,
+        size: 14 + Math.random() * 14,
+        delay: Math.random() * 4000,
+        duration: 5500 + Math.random() * 4000
+      };
+    })
+  ).current;
+
+  if (settings.reducedMotion) return null;
   return (
-    <TouchableOpacity
-      activeOpacity={0.85}
-      onPress={() => onTap(item)}
-      style={styles.cardWrap}
-      accessibilityRole="button"
-      accessibilityLabel={item.name}
-      accessibilityHint={packed ? 'Already packed' : 'Tap to pack this item'}
-      accessibilityState={{ selected: packed }}
-      {...touchTargetProps(a11y)}
-    >
-      <Animated.View style={[styles.card, packed && styles.cardPacked, style]}>
-        {packed && <View style={styles.cardCheck}><Text style={styles.cardCheckText}>✓</Text></View>}
-        <View style={[styles.cardIcon, { backgroundColor: packed ? '#DCFCE7' : item.iconBg }]}>
-          <Text style={styles.cardEmoji}>{item.emoji}</Text>
-        </View>
-        <Text style={styles.cardName}>{item.name}</Text>
-      </Animated.View>
-    </TouchableOpacity>
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+      {bits.map((b, i) => <FloatingBit key={i} {...b} />)}
+    </View>
   );
 }
 
-function Furniture({ slot, item, searched, onSearch, showHint }) {
-  const wiggle = useSharedValue(0);
-  const glow = useSharedValue(0);
+// Layered pulsing energy rings behind the backpack — two rings at
+// different sizes/speeds/colors read as richer "magic glow" than one flat
+// pulse. Ambient loop, checks reducedMotion directly.
+function BagAura({ color, size, delay, duration }) {
+  const { settings } = useAccessibility();
+  const pulse = useSharedValue(0);
 
   useEffect(() => {
-    if (showHint && !searched && item) {
-      glow.value = withRepeat(withSequence(withTiming(1, { duration: 500 }), withTiming(0, { duration: 500 })), -1, true);
-    } else { glow.value = 0; }
-  }, [showHint, searched]);
+    if (settings.reducedMotion) { pulse.value = 0; return; }
+    pulse.value = withDelay(delay, withRepeat(
+      withSequence(
+        withTiming(1, { duration, easing: Easing.out(Easing.quad) }),
+        withTiming(0, { duration, easing: Easing.in(Easing.quad) })
+      ), -1, false
+    ));
+  }, [settings.reducedMotion]);
 
-  const doSearch = () => {
-    if (searched) return;
-    wiggle.value = withSequence(
-      withTiming(-5, { duration: 60 }), withTiming(5, { duration: 60 }),
-      withTiming(-3, { duration: 60 }), withTiming(0, { duration: 60 }));
-    onSearch(slot, item);
-  };
+  const style = useAnimatedStyle(() => ({
+    opacity: 0.14 + pulse.value * 0.24,
+    transform: [{ scale: 1 + pulse.value * 0.16 }]
+  }));
 
-  const style = useAnimatedStyle(() => ({ transform: [{ rotate: `${wiggle.value}deg` }], opacity: searched ? 0.5 : 1 }));
-  const glowStyle = useAnimatedStyle(() => ({ opacity: glow.value * 0.6 }));
-  const { settings: a11y } = useAccessibility();
+  return <Animated.View pointerEvents="none" style={[styles.bagAura, { width: size, height: size, borderRadius: size / 2, backgroundColor: color }, style]} />;
+}
 
-  const shapes = {
-    shelf: <View style={styles.fShelf}><View style={styles.fShelfBoard} /><View style={styles.fShelfBoard} /></View>,
-    window: <View style={styles.fWindow}><Text style={styles.fEmojiSmall}>☁️</Text></View>,
-    bed: <View style={styles.fBed}><View style={styles.fPillow} /><View style={styles.fBlanket} /></View>,
-    lamp: <View style={styles.fLamp}><View style={styles.fLampShade} /><View style={styles.fLampBase} /></View>,
-    toybox: <View style={styles.fToybox}><Text style={styles.fEmojiSmall}>📦</Text></View>,
-    dresser: <View style={styles.fDresser}><View style={styles.fDrawer} /><View style={styles.fDrawer} /></View>,
-    plant: <View style={styles.fPlant}><Text style={styles.fEmojiSmall}>🪴</Text></View>
+// A quick starburst of sparkles from the bag on every successful pack — a
+// smaller, more frequent reward than the big end-of-round Celebration, so
+// positive feedback lands every few seconds, not just once at the end.
+function BurstFX() {
+  const { settings } = useAccessibility();
+  const bits = useRef(
+    Array.from({ length: 7 }).map((_, i) => ({
+      angle: (i / 7) * Math.PI * 2,
+      emoji: ['✨', '⭐', '🎉', '💫'][i % 4]
+    }))
+  ).current;
+
+  if (settings.reducedMotion) return null;
+  return (
+    <View pointerEvents="none" style={styles.burstWrap}>
+      {bits.map((b, i) => <BurstBit key={i} {...b} />)}
+    </View>
+  );
+}
+
+function BurstBit({ angle, emoji }) {
+  const t = useSharedValue(0);
+  useEffect(() => { t.value = withTiming(1, { duration: 550, easing: Easing.out(Easing.quad) }); }, []);
+  const style = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: Math.cos(angle) * t.value * 60 },
+      { translateY: Math.sin(angle) * t.value * 60 },
+      { scale: 1.1 - t.value * 0.5 }
+    ],
+    opacity: 1 - t.value
+  }));
+  return <Animated.Text style={[styles.burstBit, style]}>{emoji}</Animated.Text>;
+}
+
+function ItemChip({ item, index, packed, onDrop, onGrab }) {
+  const { settings } = useAccessibility();
+  const wobble = useSharedValue(0);
+  const idleY = useSharedValue(0);
+  const idleRot = useSharedValue(0);
+  const twinkle = useSharedValue(0.5);
+
+  // A gentle, staggered bob + wiggle on every shelf item, all the time —
+  // "let things move" — plus a slowly pulsing sparkle badge. Staggered by
+  // index so the shelf reads as a bunch of restless toys, not one rigid
+  // grid moving in lockstep.
+  useEffect(() => {
+    if (settings.reducedMotion) { idleY.value = 0; idleRot.value = 0; twinkle.value = 0.6; return; }
+    const stagger = index * 130;
+    idleY.value = withDelay(stagger, withRepeat(
+      withSequence(
+        withTiming(-6, { duration: 820, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0, { duration: 820, easing: Easing.inOut(Easing.sin) })
+      ), -1, false
+    ));
+    idleRot.value = withDelay(stagger, withRepeat(
+      withSequence(
+        withTiming(-4, { duration: 900 }), withTiming(4, { duration: 900 }), withTiming(0, { duration: 900 })
+      ), -1, false
+    ));
+    twinkle.value = withDelay(stagger, withRepeat(
+      withSequence(withTiming(1, { duration: 620 }), withTiming(0.35, { duration: 620 })), -1, true
+    ));
+  }, [settings.reducedMotion, index]);
+
+  const chipStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${wobble.value + idleRot.value}deg` }, { translateY: idleY.value }]
+  }));
+  const twinkleStyle = useAnimatedStyle(() => ({ opacity: twinkle.value }));
+
+  // Packed items are removed from the shelf entirely (not just hidden), so
+  // this early return must come AFTER every hook above — bailing out
+  // before a hook would call a different number of hooks on the render
+  // where an item flips from unpacked to packed than on every render
+  // before it, which is exactly what "fewer hooks than expected" catches.
+  if (packed) return null;
+
+  const ringColor = RING_COLORS[index % RING_COLORS.length];
+
+  const rejectShake = () => {
+    wobble.value = withSequence(
+      withTiming(-6, { duration: 55 }), withTiming(6, { duration: 55 }),
+      withTiming(-4, { duration: 55 }), withTiming(0, { duration: 55 })
+    );
   };
 
   return (
-    <TouchableOpacity
-      style={[styles.furniture, { left: slot.x, top: slot.y }]}
-      onPress={doSearch}
-      activeOpacity={0.8}
-      disabled={searched}
-      accessibilityRole="button"
-      accessibilityLabel={`${slot.type}`}
-      accessibilityHint={searched ? 'Already searched' : 'Tap to search for hidden items'}
-      accessibilityState={{ disabled: searched }}
-      {...touchTargetProps(a11y)}
-    >
-      <Animated.View style={glowStyle}><View style={styles.furnitureGlow} /></Animated.View>
-      <Animated.View style={style}>
-        {shapes[slot.type]}
-        {searched && <View style={styles.searchedBadge}><Text style={styles.searchedBadgeText}>✓</Text></View>}
-      </Animated.View>
-    </TouchableOpacity>
+    <Animated.View entering={ZoomIn.delay(index * 60).springify().damping(13)} style={styles.chipWrap}>
+      <DraggableChip onDrop={(x, y) => onDrop(item, x, y, rejectShake)} onGrab={onGrab}>
+        <Animated.View style={[styles.chip, { borderColor: ringColor }, chipStyle]}>
+          <Animated.Text style={[styles.chipTwinkle, twinkleStyle]}>✨</Animated.Text>
+          <View style={[styles.chipIcon, { backgroundColor: item.iconBg, borderColor: ringColor }]}>
+            <Text style={styles.chipEmoji}>{item.emoji}</Text>
+          </View>
+          <Text style={styles.chipName} numberOfLines={1}>{item.name}</Text>
+        </Animated.View>
+      </DraggableChip>
+    </Animated.View>
   );
 }
 
 export default function KitBuilderScreen({ route, navigation }) {
   const { userId } = useUser();
   const { settings: a11y } = useAccessibility();
+  const insets = useSafeAreaInsets();
   const hazardKey = (route.params && route.params.hazard) || 'flood';
   const HAZARD = HAZARD_DATA[hazardKey];
   const KIT_ITEMS = HAZARD.items;
-  const DANGERS = HAZARD.dangers;
-  const correctItems = KIT_ITEMS.filter(i => i.correct);
+  const correctItems = KIT_ITEMS.filter((i) => i.correct);
 
-  // furniture assignment: correct items + a couple decoys hidden, some slots empty
-  const roomAssignment = useRef(null);
-  if (!roomAssignment.current) {
-    const hideable = [...correctItems.slice(0, 7), KIT_ITEMS.find(i => !i.correct)].filter(Boolean);
-    roomAssignment.current = ROOM_SLOTS.map((slot, i) => ({ slot, item: hideable[i] || null }));
-  }
-
-  const [phase, setPhase] = useState('map');
-  const [level, setLevel] = useState(null);
-  const [levelStars, setLevelStars] = useState({});
+  const [phase, setPhase] = useState('intro'); // intro | playing | won | lost
   const [packedIds, setPackedIds] = useState([]);
-  const [searchedSlots, setSearchedSlots] = useState([]);
-  const [fixedDangers, setFixedDangers] = useState([]);
-  const [foundItem, setFoundItem] = useState(null);
-  const [wrongId, setWrongId] = useState(null);
   const [mistakes, setMistakes] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(90);
+  const [timeLeft, setTimeLeft] = useState(ROUND_TIME);
   const [message, setMessage] = useState(null);
   const [finalStars, setFinalStars] = useState(0);
-  const [showHint, setShowHint] = useState(false);
+  const [burstSeq, setBurstSeq] = useState(0);
+  const [gamBadges, setGamBadges] = useState(null);
+  const { unlockedBadge, dismissBadgeUnlock } = useBadgeUnlock(gamBadges);
+
   const timerRef = useRef(null);
-  const hintRef = useRef(null);
+  const bagWrapRef = useRef(null);
+  const bagRectRef = useRef(null);
+
+  const bagScale = useSharedValue(1);
+  const bagShakeX = useSharedValue(0);
+  const goodFlash = useSharedValue(0);
+  const badFlash = useSharedValue(0);
+  const colorCycle = useSharedValue(0);
 
   const packPlayer = useAudioPlayer(packSound);
   const wrongPlayer = useAudioPlayer(wrongSound);
   const winPlayer = useAudioPlayer(winSound);
   const tickPlayer = useAudioPlayer(tickSound);
+  const grabPlayer = useAudioPlayer(tickSound);
 
   useEffect(() => {
     if (phase !== 'playing') return;
@@ -174,464 +276,258 @@ export default function KitBuilderScreen({ route, navigation }) {
     return () => clearInterval(timerRef.current);
   }, [phase]);
 
+  // The bag's outer glow slowly cycles between the hazard color and a warm
+  // gold — a bit of rainbow-ish shimmer on the one element that matters
+  // most, without turning the whole screen into a color strobe.
   useEffect(() => {
-    if (phase === 'playing' && level && level.mode === 'explore') {
-      hintRef.current = setTimeout(() => setShowHint(true), 15000);
-    }
-    return () => clearTimeout(hintRef.current);
-  }, [phase, searchedSlots.length]);
+    if (a11y.reducedMotion) { colorCycle.value = 0; return; }
+    colorCycle.value = withRepeat(withTiming(1, { duration: 2200, easing: Easing.inOut(Easing.sin) }), -1, true);
+  }, [a11y.reducedMotion]);
 
-  const startLevel = (lvl) => {
-    if (lvl.mode === 'runner') { navigation.navigate('FloodRunner', { hazard: hazardKey }); return; }
-    setLevel(lvl);
-    setPackedIds([]); setSearchedSlots([]); setFixedDangers([]); setFoundItem(null);
-    setMistakes(0); setTimeLeft(lvl.time); setMessage(null); setShowHint(false); setWrongId(null);
+  const measureBag = useCallback(() => {
+    requestAnimationFrame(() => {
+      if (!bagWrapRef.current) return;
+      bagWrapRef.current.measureInWindow((x, y, width, height) => {
+        bagRectRef.current = { x, y, width, height };
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    if (phase === 'playing') measureBag();
+  }, [phase, measureBag]);
+
+  const startRound = () => {
+    setPackedIds([]); setMistakes(0); setTimeLeft(ROUND_TIME); setMessage(null); setBurstSeq(0);
+    bagScale.value = 1; bagShakeX.value = 0; goodFlash.value = 0; badFlash.value = 0;
     setPhase('playing');
   };
 
-  const computeStars = (time, mk, total) => {
-    if (mk === 0 && time > total * 0.33) return 3;
-    if (mk <= 1 && time > total * 0.1) return 2;
-    return 1;
-  };
-
-  const finishLevel = async () => {
+  const finishRound = async () => {
     clearInterval(timerRef.current);
     winPlayer.seekTo(0); winPlayer.play();
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    const stars = computeStars(timeLeft, mistakes, level.time);
-    setFinalStars(stars);
-    setLevelStars((prev) => ({ ...prev, [level.id]: Math.max(prev[level.id] || 0, stars) }));
+    setFinalStars(computeStars(timeLeft, mistakes, ROUND_TIME));
     setPhase('won');
-    try { await apiRequest('/gamification/kit-complete', 'POST', { userId, kitId: `${hazardKey}_kids` }); }
-    catch (err) { console.log('Kit completion error:', err.message); }
+    try {
+      const result = await apiRequest('/gamification/kit-complete', 'POST', { userId, kitId: `${hazardKey}_kids` });
+      setGamBadges(result.badges || []);
+    } catch (err) { console.log('Kit completion error:', err.message); }
   };
 
-  const tapItem = (item) => {
-    if (phase !== 'playing' || packedIds.includes(item.id)) return;
+  const handleGrab = () => { grabPlayer.seekTo(0); grabPlayer.play(); };
+
+  const handleDrop = (item, absX, absY, rejectShake) => {
+    const rect = bagRectRef.current;
+    const inBag = rect &&
+      absX >= rect.x - DROP_PAD && absX <= rect.x + rect.width + DROP_PAD &&
+      absY >= rect.y - DROP_PAD && absY <= rect.y + rect.height + DROP_PAD;
+    if (!inBag || packedIds.includes(item.id)) return;
+
     if (item.correct) {
       packPlayer.seekTo(0); packPlayer.play();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      const np = [...packedIds, item.id];
-      setPackedIds(np);
+      bagScale.value = withSequence(withSpring(1.08, { damping: 12, stiffness: 180 }), withSpring(1));
+      goodFlash.value = withSequence(withTiming(1, { duration: 90 }), withTiming(0, { duration: 380 }));
+      setBurstSeq((s) => s + 1);
       setMessage({ good: true, title: `${item.emoji} ${item.name} packed!`, text: item.why });
-      if (np.length === correctItems.length) finishLevel();
+
+      const nextPacked = [...packedIds, item.id];
+      setPackedIds(nextPacked);
+      if (nextPacked.length === correctItems.length) {
+        clearInterval(timerRef.current);
+        setTimeout(finishRound, 260);
+      }
     } else {
       wrongPlayer.seekTo(0); wrongPlayer.play();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      setWrongId(item.id);
-      setTimeout(() => setWrongId(null), 400);
+      bagShakeX.value = withSequence(
+        withTiming(-10, { duration: 50 }), withTiming(10, { duration: 50 }),
+        withTiming(-7, { duration: 50 }), withTiming(7, { duration: 50 }), withTiming(0, { duration: 50 })
+      );
+      badFlash.value = withSequence(withTiming(1, { duration: 90 }), withTiming(0, { duration: 380 }));
+      rejectShake();
       setMistakes((m) => m + 1);
       setMessage({ good: false, title: `${item.emoji} Not that one!`, text: item.why });
     }
   };
 
-  const handleSearch = (slot, item) => {
-    const key = `${slot.x}-${slot.y}`;
-    if (searchedSlots.includes(key) || foundItem) return;
-    setSearchedSlots((prev) => [...prev, key]);
-    setShowHint(false);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    if (!item) { setMessage({ good: true, title: '🔍 Nothing here!', text: 'Keep searching, little hero!' }); return; }
-    setFoundItem(item);
-  };
+  const bagAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: bagShakeX.value }, { scale: bagScale.value }],
+    borderColor: interpolateColor(colorCycle.value, [0, 1], [HAZARD.color, '#FBBF24'])
+  }));
+  const goodFlashStyle = useAnimatedStyle(() => ({ opacity: goodFlash.value }));
+  const badFlashStyle = useAnimatedStyle(() => ({ opacity: badFlash.value }));
 
-  const decideFoundItem = (pack) => {
-    const item = foundItem;
-    setFoundItem(null);
-    if (pack) {
-      if (item.correct) {
-        if (packedIds.includes(item.id)) return;
-        packPlayer.seekTo(0); packPlayer.play();
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        const np = [...packedIds, item.id];
-        setPackedIds(np);
-        setMessage({ good: true, title: `${item.emoji} ${item.name} packed!`, text: item.why });
-        if (np.length === correctItems.length) finishLevel();
-      } else {
-        wrongPlayer.seekTo(0); wrongPlayer.play();
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-        setMistakes((m) => m + 1);
-        setMessage({ good: false, title: `${item.emoji} That doesn't belong!`, text: item.why });
-      }
-    } else {
-      if (item.correct) {
-        setMessage({ good: false, title: `${item.emoji} Wait, you need that!`, text: item.why });
-      } else {
-        setMessage({ good: true, title: `${item.emoji} Good call!`, text: `Right — ${item.why.toLowerCase()}` });
-      }
-    }
-  };
+  const percent = correctItems.length ? Math.round((packedIds.length / correctItems.length) * 100) : 0;
 
-  const fixDanger = (d) => {
-    if (fixedDangers.includes(d.id)) return;
-    packPlayer.seekTo(0); packPlayer.play();
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    const nf = [...fixedDangers, d.id];
-    setFixedDangers(nf);
-    setMessage({ good: true, title: `${d.safe} Fixed: ${d.name}`, text: d.why });
-    if (nf.length === DANGERS.length) finishLevel();
-  };
-
-  if (phase === 'map') {
-    const bonus = BONUS_MISSIONS[hazardKey];
+  if (phase === 'intro') {
     return (
-      <ScrollView style={styles.screen} contentContainerStyle={styles.mapContainer}>
-        <BouncyMascot size={64} />
-        <Text style={styles.hazardMascotEmoji}>{HAZARD.emoji}</Text>
-        <Text style={styles.introTitle}>{HAZARD.label} Rescue Missions</Text>
-        <Text style={styles.mapSub}>Pick a mission, little hero!</Text>
-        {HAZARD_LEVELS.map((lvl) => (
-          <BouncyPress
-            key={lvl.id}
-            style={styles.levelCard}
-            onPress={() => startLevel(lvl)}
-            accessibilityRole="button"
-            accessibilityLabel={`Level ${lvl.id}: ${lvl.title}`}
-            accessibilityHint={`${lvl.desc}. ${levelStars[lvl.id] || 0} of 3 stars earned.`}
-          >
-            <View style={[styles.levelIconBox, { backgroundColor: HAZARD.color + '33' }]}><Text style={styles.levelEmoji}>{lvl.emoji}</Text></View>
-            <View style={styles.levelInfo}>
-              <Text style={styles.levelTitle}>Level {lvl.id}: {lvl.title}</Text>
-              <Text style={styles.levelDesc}>{lvl.desc}</Text>
-            </View>
-            <Text style={styles.levelStars}>{'⭐'.repeat(levelStars[lvl.id] || 0)}{'☆'.repeat(3 - (levelStars[lvl.id] || 0))}</Text>
+      <GestureHandlerRootView style={styles.screen}>
+        <FloatingBits hazardKey={hazardKey} />
+        <SafeAreaView style={styles.safeFill} edges={['top', 'bottom']}>
+        <ScrollView contentContainerStyle={styles.introContainer}>
+          <BouncyMascot size={64} />
+          <Text style={styles.hazardEmoji}>{HAZARD.emoji}</Text>
+          <Text style={styles.introTitle}>Pack & Protect</Text>
+          <Text style={[styles.introTag, { color: HAZARD.color }]}>{HAZARD.label} Kit Challenge</Text>
+          <Text style={styles.introText}>{HAZARD.intro}</Text>
+          <Text style={styles.introHow}>Drag each item that belongs in your kit into the glowing bag — leave anything that doesn't help behind!</Text>
+          <BouncyPress style={[styles.startButton, { backgroundColor: HAZARD.color }]} onPress={startRound} accessibilityRole="button" accessibilityLabel="Start packing">
+            <Text style={styles.startButtonText}>🎒 Start Packing!</Text>
           </BouncyPress>
-        ))}
-        {bonus && (
-          <BouncyPress
-            style={styles.bonusCard}
-            onPress={() => navigation.navigate(bonus.screen, { hazard: hazardKey })}
-            accessibilityRole="button"
-            accessibilityLabel={`Bonus mission: ${bonus.title}`}
-            accessibilityHint={bonus.desc}
-          >
-            <Text style={styles.bonusTag}>🌟 BONUS MISSION</Text>
-            <View style={styles.bonusRow}>
-              <View style={[styles.levelIconBox, { backgroundColor: '#FFFFFF44' }]}><Text style={styles.levelEmoji}>{bonus.emoji}</Text></View>
-              <View style={styles.levelInfo}>
-                <Text style={styles.bonusTitle}>{bonus.title}</Text>
-                <Text style={styles.bonusDesc}>{bonus.desc}</Text>
-              </View>
-            </View>
-          </BouncyPress>
-        )}
-        <TouchableOpacity
-          style={styles.secondaryButton}
-          onPress={() => navigation.goBack()}
-          accessibilityRole="button"
-          accessibilityLabel="Back home"
-          {...touchTargetProps(a11y)}
-        >
-          <Text style={styles.secondaryButtonText}>Back Home</Text>
-        </TouchableOpacity>
-      </ScrollView>
+          <TouchableOpacity style={styles.secondaryButton} onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel="Back home" {...touchTargetProps(a11y)}>
+            <Text style={styles.secondaryButtonText}>Back Home</Text>
+          </TouchableOpacity>
+        </ScrollView>
+        </SafeAreaView>
+      </GestureHandlerRootView>
     );
   }
 
   if (phase === 'won') {
     return (
-      <View style={[styles.screen, styles.centerScreen]}>
+      <SafeAreaView style={[styles.screen, styles.centerScreen]} edges={['top', 'bottom']}>
         <Celebration colors={[HAZARD.color, '#FBBF24', '#34D399', '#F472B6']} />
         <BouncyMascot size={64} emoji="🦊🎉" />
-        <Text style={styles.introTitle}>Mission Complete, Hero!</Text>
+        <Text style={styles.introTitle}>Bag Packed, Hero!</Text>
         <Text style={styles.stars}>{'⭐'.repeat(finalStars)}{'☆'.repeat(3 - finalStars)}</Text>
         <Text style={styles.introText}>
-          {level.emoji} {level.title} done{mistakes > 0 ? ` with ${mistakes} mix-up${mistakes > 1 ? 's' : ''}` : ' with no mistakes'}!{'\n\n'}
-          You earned +30 points and a safety badge!{'\n\n'}Prepare today, protect tomorrow!
+          {HAZARD.emoji} Your {HAZARD.label.toLowerCase()} kit is ready{mistakes > 0 ? ` — ${mistakes} mix-up${mistakes > 1 ? 's' : ''} along the way!` : ' with zero mix-ups!'}{'\n\n'}
+          You earned +30 points and a safety badge!
         </Text>
-        <TouchableOpacity
-          style={styles.startButton}
-          onPress={() => setPhase('map')}
-          accessibilityRole="button"
-          accessibilityLabel="Mission map"
-          {...touchTargetProps(a11y)}
-        >
-          <Text style={styles.startButtonText}>🗺 Mission Map</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.secondaryButton}
-          onPress={() => navigation.goBack()}
-          accessibilityRole="button"
-          accessibilityLabel="Back home"
-          {...touchTargetProps(a11y)}
-        >
+        <BouncyPress style={[styles.startButton, { backgroundColor: HAZARD.color }]} onPress={startRound} accessibilityRole="button" accessibilityLabel="Play again">
+          <Text style={styles.startButtonText}>🔁 Play Again</Text>
+        </BouncyPress>
+        <TouchableOpacity style={styles.secondaryButton} onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel="Back home" {...touchTargetProps(a11y)}>
           <Text style={styles.secondaryButtonText}>Back Home</Text>
         </TouchableOpacity>
-      </View>
+        <BadgeUnlockOverlay badgeId={unlockedBadge} accent={HAZARD.color} onDismiss={dismissBadgeUnlock} />
+      </SafeAreaView>
     );
   }
 
   if (phase === 'lost') {
     return (
-      <View style={[styles.screen, styles.centerScreen]}>
+      <SafeAreaView style={[styles.screen, styles.centerScreen]} edges={['top', 'bottom']}>
         <BouncyMascot size={56} emoji="🦊💦" />
         <Text style={styles.introTitle}>Time's up!</Text>
         <Text style={styles.introText}>Don't worry — real heroes practice! Try again, you've got this!</Text>
-        <TouchableOpacity
-          style={styles.startButton}
-          onPress={() => startLevel(level)}
-          accessibilityRole="button"
-          accessibilityLabel="Try again"
-          {...touchTargetProps(a11y)}
-        >
+        <BouncyPress style={[styles.startButton, { backgroundColor: HAZARD.color }]} onPress={startRound} accessibilityRole="button" accessibilityLabel="Try again">
           <Text style={styles.startButtonText}>🔁 Try Again</Text>
+        </BouncyPress>
+        <TouchableOpacity style={styles.secondaryButton} onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel="Back home" {...touchTargetProps(a11y)}>
+          <Text style={styles.secondaryButtonText}>Back Home</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.secondaryButton}
-          onPress={() => setPhase('map')}
-          accessibilityRole="button"
-          accessibilityLabel="Mission map"
-          {...touchTargetProps(a11y)}
-        >
-          <Text style={styles.secondaryButtonText}>Mission Map</Text>
-        </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
-  if (level.mode === 'detective') {
-    return (
-      <View style={styles.screen}>
-        <View style={styles.header}>
-          <View style={styles.headerRow}>
-            <Text style={styles.title}>{level.emoji} {level.title}</Text>
-            <Text style={[styles.timer, timeLeft <= 15 && styles.timerLow]}>⏱ {timeLeft}s</Text>
-          </View>
-          <View style={styles.progressBar}><View style={[styles.progressFill, { width: `${(fixedDangers.length / DANGERS.length) * 100}%` }]} /></View>
-          <Text style={styles.progressText}>{fixedDangers.length}/{DANGERS.length} dangers fixed · Tap the dangers!</Text>
-        </View>
-        {message && (
-          <View style={[styles.messageBox, message.good ? styles.messageGood : styles.messageBad]}>
-            <Text style={styles.messageTitle}>{message.title}</Text>
-            <Text style={styles.messageText}>{message.text}</Text>
-          </View>
-        )}
-        <View style={styles.detectiveRoom}>
-          {DANGERS.map((d) => {
-            const fixed = fixedDangers.includes(d.id);
-            return (
-              <TouchableOpacity
-                key={d.id}
-                style={[styles.dangerSpot, { left: d.x, top: d.y }]}
-                onPress={() => fixDanger(d)}
-                activeOpacity={0.7}
-                disabled={fixed}
-                accessibilityRole="button"
-                accessibilityLabel={d.name}
-                accessibilityHint={fixed ? 'Already fixed' : 'Tap to fix this danger'}
-                accessibilityState={{ disabled: fixed }}
-                {...touchTargetProps(a11y)}
-              >
-                <Text style={styles.dangerEmoji}>{fixed ? d.safe : d.emoji}</Text>
-                {!fixed && <View style={styles.dangerPulse} />}
-                <Text style={styles.dangerLabel}>{fixed ? 'Safe!' : 'Danger!'}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-    );
-  }
-
-  if (level.mode === 'explore') {
-    return (
-      <View style={styles.screen}>
-        <View style={styles.header}>
-          <View style={styles.headerRow}>
-            <Text style={styles.title}>{level.emoji} {level.title}</Text>
-            <Text style={[styles.timer, timeLeft <= 15 && styles.timerLow]}>⏱ {timeLeft}s</Text>
-          </View>
-          <View style={styles.progressBar}><View style={[styles.progressFill, { width: `${(packedIds.length / correctItems.length) * 100}%` }]} /></View>
-          <Text style={styles.progressText}>Found {packedIds.length}/{correctItems.length} · Tap furniture to search!</Text>
-        </View>
-        {message && !foundItem && (
-          <View style={[styles.messageBox, message.good ? styles.messageGood : styles.messageBad]}>
-            <Text style={styles.messageTitle}>{message.title}</Text>
-            <Text style={styles.messageText}>{message.text}</Text>
-          </View>
-        )}
-        <View style={styles.bedroom}>
-          <View style={styles.bedroomWall} />
-          <View style={styles.bedroomFloor} />
-          {roomAssignment.current.map((entry, i) => {
-            const key = `${entry.slot.x}-${entry.slot.y}`;
-            const alreadyPacked = entry.item && packedIds.includes(entry.item.id);
-            return (
-              <Furniture
-                key={i}
-                slot={entry.slot}
-                item={alreadyPacked ? null : entry.item}
-                searched={searchedSlots.includes(key)}
-                onSearch={handleSearch}
-                showHint={showHint}
-              />
-            );
-          })}
-        </View>
-        {foundItem && (
-          <View style={styles.foundOverlay}>
-            <View style={styles.foundCard}>
-              <Text style={styles.foundEmoji}>{foundItem.emoji}</Text>
-              <Text style={styles.foundTitle}>You found: {foundItem.name}!</Text>
-              <Text style={styles.foundText}>Should it go in your emergency bag?</Text>
-              <View style={styles.foundButtons}>
-                <TouchableOpacity
-                  style={styles.packBtn}
-                  onPress={() => decideFoundItem(true)}
-                  accessibilityRole="button"
-                  accessibilityLabel="Pack it"
-                  accessibilityHint="Puts this item in your emergency bag"
-                  {...touchTargetProps(a11y)}
-                >
-                  <Text style={styles.packBtnText}>🎒 Pack it!</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.leaveBtn}
-                  onPress={() => decideFoundItem(false)}
-                  accessibilityRole="button"
-                  accessibilityLabel="Leave it"
-                  accessibilityHint="Does not pack this item"
-                  {...touchTargetProps(a11y)}
-                >
-                  <Text style={styles.leaveBtnText}>Leave it</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        )}
-      </View>
-    );
-  }
-
-  // drag mode (Level 1) — tap to pack
   return (
-    <View style={styles.screen}>
-      <View style={[styles.packHeader, { backgroundColor: HAZARD.color }]}>
+    <GestureHandlerRootView style={styles.screen}>
+      <FloatingBits hazardKey={hazardKey} />
+
+      <View style={[styles.header, { backgroundColor: HAZARD.color, paddingTop: insets.top + 14 }]}>
         <View style={styles.headerRow}>
-          <Text style={styles.packTitle}>{HAZARD.emoji} Safety Pack!</Text>
+          <TouchableOpacity onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel="Back home" {...touchTargetProps(a11y)}>
+            <Text style={styles.headerBack}>‹ Back</Text>
+          </TouchableOpacity>
           <Text style={[styles.timer, timeLeft <= 15 && styles.timerLow]}>⏱ {timeLeft}s</Text>
         </View>
-        <Text style={styles.packSub}>Quick! Tap the items you need for a {HAZARD.label.toLowerCase()}.</Text>
-        <View style={styles.progressBar}><View style={[styles.progressFill, { width: `${Math.round((packedIds.length / correctItems.length) * 100)}%` }]} /></View>
-        <Text style={styles.progressText}>{Math.round((packedIds.length / correctItems.length) * 100)}% READY</Text>
+        <Text style={styles.headerTitle}>{HAZARD.emoji} Pack & Protect</Text>
+      </View>
+
+      <View style={styles.bagZone} onLayout={measureBag}>
+        <BagAura color={HAZARD.color} size={170} delay={0} duration={1100} />
+        <BagAura color="#FBBF24" size={130} delay={400} duration={1400} />
+        {burstSeq > 0 && <BurstFX key={burstSeq} />}
+        <View ref={bagWrapRef} onLayout={measureBag} collapsable={false}>
+          <Animated.View style={[styles.bag, bagAnimStyle]}>
+            <Animated.View pointerEvents="none" style={[styles.bagFlash, styles.bagFlashGood, goodFlashStyle]} />
+            <Animated.View pointerEvents="none" style={[styles.bagFlash, styles.bagFlashBad, badFlashStyle]} />
+            <View style={styles.bagStrap} />
+            <View style={[styles.bagBody, { backgroundColor: HAZARD.color + '22' }]}>
+              <View style={[styles.bagFill, { height: `${percent}%`, backgroundColor: HAZARD.color + '55' }]} />
+              <Text style={styles.bagEmoji}>🎒</Text>
+            </View>
+            <View style={[styles.bagBadge, { backgroundColor: HAZARD.color }]}>
+              <Text style={styles.bagBadgeText}>{packedIds.length}/{correctItems.length}</Text>
+            </View>
+          </Animated.View>
+        </View>
+        <Text style={styles.bagHint}>Drag gear here!</Text>
       </View>
 
       {message && (
-        <View style={[styles.messageBox, message.good ? styles.messageGood : styles.messageBad]}>
+        <Animated.View entering={answerFeedbackEntering} style={[styles.messageBox, message.good ? styles.messageGood : styles.messageBad]}>
           <Text style={styles.messageTitle}>{message.title}</Text>
           <Text style={styles.messageText}>{message.text}</Text>
-        </View>
+        </Animated.View>
       )}
 
-      <ScrollView contentContainerStyle={styles.cardGrid}>
-        {KIT_ITEMS.map((item) => (
-          <ItemCard key={item.id} item={item} packed={packedIds.includes(item.id)} wrong={wrongId === item.id} onTap={tapItem} />
+      <ScrollView contentContainerStyle={styles.shelf}>
+        {KIT_ITEMS.map((item, index) => (
+          <ItemChip key={item.id} item={item} index={index} packed={packedIds.includes(item.id)} onDrop={handleDrop} onGrab={handleGrab} />
         ))}
       </ScrollView>
-
-      <View style={styles.packBagBar}>
-        <Text style={styles.packBagText}>🎒 {packedIds.length}/{correctItems.length} PACKED</Text>
-      </View>
-    </View>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#FAF8F5' },
+  safeFill: { flex: 1 },
   centerScreen: { justifyContent: 'center', alignItems: 'center', padding: 28 },
-  mapContainer: { padding: 20, alignItems: 'center' },
-  hazardMascotEmoji: { fontSize: 32, marginTop: -6, marginBottom: 8 },
-  introTitle: { fontSize: 24, fontWeight: 'bold', color: '#1E293B', textAlign: 'center', marginBottom: 8 },
-  mapSub: { fontSize: 14, color: '#B45309', marginBottom: 20 },
-  introText: { fontSize: 15, color: '#475569', textAlign: 'center', lineHeight: 22, marginBottom: 24 },
+
+  floatingBit: { position: 'absolute', top: 0 },
+
+  introContainer: { padding: 20, alignItems: 'center', paddingTop: 20 },
+  hazardEmoji: { fontSize: 40, marginTop: -6, marginBottom: 6 },
+  introTitle: { fontSize: 26, fontWeight: 'bold', color: '#1E293B', textAlign: 'center', marginBottom: 4 },
+  introTag: { fontSize: 15, fontWeight: 'bold', marginBottom: 16 },
+  introText: { fontSize: 15, color: '#475569', textAlign: 'center', lineHeight: 22, marginBottom: 14 },
+  introHow: { fontSize: 14, color: '#64748B', textAlign: 'center', lineHeight: 20, marginBottom: 26, fontStyle: 'italic' },
   stars: { fontSize: 40, marginBottom: 12 },
-  startButton: { backgroundColor: '#F59E0B', borderRadius: 16, paddingVertical: 14, paddingHorizontal: 40, marginBottom: 10 },
+  startButton: { borderRadius: 18, paddingVertical: 16, paddingHorizontal: 44, marginBottom: 12 },
   startButtonText: { fontSize: 18, fontWeight: 'bold', color: '#fff' },
   secondaryButton: { paddingVertical: 10 },
   secondaryButtonText: { fontSize: 15, color: '#64748B', fontWeight: 'bold' },
 
-  levelCard: { width: '100%', flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 18, padding: 14, marginBottom: 14, shadowColor: '#000', shadowOpacity: 0.07, shadowRadius: 5, elevation: 3 },
-  levelIconBox: { width: 54, height: 54, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
-  levelEmoji: { fontSize: 28 },
-  levelInfo: { flex: 1 },
-  levelTitle: { fontSize: 16, fontWeight: 'bold', color: '#1E293B' },
-  levelDesc: { fontSize: 12, color: '#64748B', marginTop: 2 },
-  levelStars: { fontSize: 13, marginLeft: 6 },
-
-  bonusCard: { width: '100%', backgroundColor: '#6D5BD0', borderRadius: 18, padding: 14, marginBottom: 14, marginTop: 4 },
-  bonusTag: { color: '#FDE68A', fontSize: 11, fontWeight: 'bold', letterSpacing: 1, marginBottom: 8 },
-  bonusRow: { flexDirection: 'row', alignItems: 'center' },
-  bonusTitle: { fontSize: 16, fontWeight: 'bold', color: '#fff' },
-  bonusDesc: { fontSize: 12, color: '#E9E4F8', marginTop: 2 },
-
-  header: { padding: 16, paddingBottom: 8 },
-  packHeader: { padding: 16, paddingTop: 18, borderBottomLeftRadius: 24, borderBottomRightRadius: 24 },
-  packTitle: { fontSize: 22, fontWeight: 'bold', color: '#fff' },
-  packSub: { fontSize: 13, color: 'rgba(255,255,255,0.85)', marginTop: 2, marginBottom: 10 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  title: { fontSize: 20, fontWeight: 'bold', color: '#1E293B' },
-  timer: { fontSize: 18, fontWeight: 'bold', color: '#fff' },
+  header: { paddingBottom: 14, paddingHorizontal: 18, borderBottomLeftRadius: 24, borderBottomRightRadius: 24 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  headerBack: { color: '#fff', fontSize: 15, fontWeight: 'bold' },
+  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff' },
+  timer: { fontSize: 17, fontWeight: 'bold', color: '#fff' },
   timerLow: { color: '#FECACA' },
-  progressBar: { height: 12, backgroundColor: 'rgba(255,255,255,0.4)', borderRadius: 6, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: '#34D399', borderRadius: 6 },
-  progressText: { fontSize: 12, fontWeight: 'bold', color: '#fff', marginTop: 4, textAlign: 'right' },
 
-  messageBox: { marginHorizontal: 16, marginTop: 10, borderRadius: 12, padding: 10 },
+  bagZone: { alignItems: 'center', justifyContent: 'center', paddingVertical: 18 },
+  bagAura: { position: 'absolute' },
+  bag: { width: 150, height: 150, alignItems: 'center', justifyContent: 'flex-end', borderRadius: 28, borderWidth: 4, backgroundColor: '#fff', overflow: 'hidden' },
+  bagFlash: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 28 },
+  bagFlashGood: { backgroundColor: '#34D399' },
+  bagFlashBad: { backgroundColor: '#EF4444' },
+  bagStrap: { position: 'absolute', top: -10, width: 60, height: 20, borderRadius: 10, backgroundColor: '#94A3B8', zIndex: -1 },
+  bagBody: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  bagFill: { position: 'absolute', bottom: 0, left: 0, right: 0 },
+  bagEmoji: { fontSize: 64 },
+  bagBadge: { position: 'absolute', bottom: -10, alignSelf: 'center', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 4 },
+  bagBadgeText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
+  bagHint: { marginTop: 16, fontSize: 12, color: '#94A3B8', fontWeight: 'bold', letterSpacing: 0.5 },
+
+  burstWrap: { position: 'absolute', top: '50%', left: '50%', width: 0, height: 0, alignItems: 'center', justifyContent: 'center', zIndex: 30 },
+  burstBit: { position: 'absolute', fontSize: 20 },
+
+  messageBox: { marginHorizontal: 16, marginBottom: 6, borderRadius: 12, padding: 10 },
   messageGood: { backgroundColor: '#D9F7EC', borderWidth: 1, borderColor: '#34D399' },
   messageBad: { backgroundColor: '#FEF3C7', borderWidth: 1, borderColor: '#F59E0B' },
   messageTitle: { fontWeight: 'bold', fontSize: 13, color: '#1E293B' },
   messageText: { fontSize: 12, color: '#475569', marginTop: 2 },
 
-  cardGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', padding: 16 },
-  cardWrap: { width: '48%', marginBottom: 14 },
-  card: { backgroundColor: '#fff', borderRadius: 20, padding: 16, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6, elevation: 2, borderWidth: 2, borderColor: '#fff' },
-  cardPacked: { borderColor: '#34D399', backgroundColor: '#F0FDF9' },
-  cardCheck: { position: 'absolute', top: 10, right: 10, width: 24, height: 24, borderRadius: 12, backgroundColor: '#34D399', alignItems: 'center', justifyContent: 'center', zIndex: 2 },
-  cardCheckText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
-  cardIcon: { width: 64, height: 64, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
-  cardEmoji: { fontSize: 34 },
-  cardName: { fontSize: 15, fontWeight: 'bold', color: '#1E293B' },
-
-  packBagBar: { backgroundColor: '#34D399', paddingVertical: 18, alignItems: 'center', borderTopLeftRadius: 24, borderTopRightRadius: 24 },
-  packBagText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-
-  bedroom: { flex: 1, margin: 12, borderRadius: 20, overflow: 'hidden', position: 'relative' },
-  bedroomWall: { position: 'absolute', top: 0, left: 0, right: 0, height: '62%', backgroundColor: '#FDE8B0' },
-  bedroomFloor: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '38%', backgroundColor: '#F5D07A' },
-  furniture: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
-  furnitureGlow: { position: 'absolute', width: 90, height: 90, borderRadius: 45, backgroundColor: '#FBBF24', alignSelf: 'center' },
-  searchedBadge: { position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: '#34D399', alignItems: 'center', justifyContent: 'center' },
-  searchedBadgeText: { color: '#fff', fontWeight: 'bold', fontSize: 12 },
-  fEmojiSmall: { fontSize: 26 },
-  fShelf: { width: 90, height: 60, justifyContent: 'space-around' },
-  fShelfBoard: { height: 12, backgroundColor: '#B07B4F', borderRadius: 3 },
-  fWindow: { width: 70, height: 70, backgroundColor: '#BAE6FD', borderWidth: 6, borderColor: '#fff', borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  fBed: { width: 120, height: 60 },
-  fPillow: { width: 34, height: 24, backgroundColor: '#fff', borderRadius: 6, position: 'absolute', left: 4, top: 8, zIndex: 2 },
-  fBlanket: { width: 120, height: 40, backgroundColor: '#60A5FA', borderRadius: 8, position: 'absolute', bottom: 0 },
-  fLamp: { alignItems: 'center' },
-  fLampShade: { width: 44, height: 26, backgroundColor: '#FBBF24', borderTopLeftRadius: 22, borderTopRightRadius: 22 },
-  fLampBase: { width: 8, height: 34, backgroundColor: '#94A3B8' },
-  fToybox: { width: 70, height: 54, backgroundColor: '#F87171', borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  fDresser: { width: 76, height: 60, backgroundColor: '#C08457', borderRadius: 8, justifyContent: 'space-around', padding: 6 },
-  fDrawer: { height: 18, backgroundColor: '#A16A43', borderRadius: 4 },
-  fPlant: { width: 50, height: 60, alignItems: 'center', justifyContent: 'center' },
-
-  detectiveRoom: { flex: 1, margin: 12, borderRadius: 20, backgroundColor: '#E7D3B3', position: 'relative', overflow: 'hidden' },
-  dangerSpot: { position: 'absolute', alignItems: 'center', width: 84 },
-  dangerEmoji: { fontSize: 40 },
-  dangerPulse: { position: 'absolute', width: 54, height: 54, borderRadius: 27, borderWidth: 3, borderColor: '#EF4444', top: -6 },
-  dangerLabel: { fontSize: 11, fontWeight: 'bold', color: '#B91C1C', marginTop: 2 },
-
-  foundOverlay: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(30,41,59,0.5)', justifyContent: 'center', alignItems: 'center', zIndex: 50 },
-  foundCard: { width: '80%', backgroundColor: '#fff', borderRadius: 20, padding: 24, alignItems: 'center' },
-  foundEmoji: { fontSize: 52, marginBottom: 8 },
-  foundTitle: { fontSize: 20, fontWeight: 'bold', color: '#1E293B', marginBottom: 6, textAlign: 'center' },
-  foundText: { fontSize: 14, color: '#64748B', marginBottom: 16, textAlign: 'center' },
-  foundButtons: { flexDirection: 'row' },
-  packBtn: { backgroundColor: '#34D399', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 20, marginRight: 10 },
-  packBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
-  leaveBtn: { backgroundColor: '#E2E8F0', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 20 },
-  leaveBtnText: { color: '#475569', fontWeight: 'bold', fontSize: 15 }
+  shelf: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', padding: 16, paddingBottom: 32 },
+  chipWrap: { width: '31%', marginBottom: 14 },
+  chip: { backgroundColor: '#fff', borderRadius: 18, borderWidth: 2, padding: 10, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 6, elevation: 4 },
+  chipTwinkle: { position: 'absolute', top: 2, right: 4, fontSize: 13 },
+  chipIcon: { width: 52, height: 52, borderRadius: 26, borderWidth: 2, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+  chipEmoji: { fontSize: 28 },
+  chipName: { fontSize: 11, fontWeight: 'bold', color: '#1E293B', textAlign: 'center' }
 });

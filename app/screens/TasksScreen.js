@@ -10,6 +10,8 @@ import { useAccessibility, touchTargetProps, touchTargetStyle } from '../context
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 import EmptyState from '../components/EmptyState';
+import BadgeUnlockOverlay from '../components/BadgeUnlockOverlay';
+import useBadgeUnlock from '../hooks/useBadgeUnlock';
 import { SPACING, TYPE, RADII, AGE_PALETTES, SEMANTIC } from '../constants/tokens';
 
 export default function TasksScreen() {
@@ -20,13 +22,21 @@ export default function TasksScreen() {
   const [completedToday, setCompletedToday] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [mode, setMode] = useState('adult');
+  const [gamBadges, setGamBadges] = useState(null);
+  const { unlockedBadge, dismissBadgeUnlock } = useBadgeUnlock(gamBadges);
+  const accent = AGE_PALETTES[mode]?.primary || AGE_PALETTES.adult.navy;
 
   const load = useCallback(async () => {
     setError(false);
     try {
-      const result = await apiRequest(`/gamification/tasks?userId=${userId}`, 'GET');
-      setTasks(result.tasks || []);
-      setCompletedToday(result.completedToday || []);
+      const [tasksRes, profileRes] = await Promise.all([
+        apiRequest(`/gamification/tasks?userId=${userId}`, 'GET'),
+        apiRequest(`/onboarding/profile?userId=${userId}`, 'GET')
+      ]);
+      setTasks(tasksRes.tasks || []);
+      setCompletedToday(tasksRes.completedToday || []);
+      setMode(profileRes.experienceMode || 'adult');
     } catch (err) {
       console.log('Tasks error:', err.message);
       setError(true);
@@ -40,6 +50,7 @@ export default function TasksScreen() {
   const completeTask = async (taskId) => {
     try {
       const result = await apiRequest('/gamification/complete-task', 'POST', { userId, taskId });
+      setGamBadges(result.badges || []);
       Alert.alert('Task complete! 🎉', `You now have ${result.points} points (${result.rank}).`);
       load();
     } catch (err) {
@@ -52,6 +63,7 @@ export default function TasksScreen() {
 
   return (
     <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={styles.container}>
+      <BadgeUnlockOverlay badgeId={unlockedBadge} accent={accent} onDismiss={dismissBadgeUnlock} />
       <Text style={[styles.title, { color: theme.text }]}>⚡ Daily Tasks</Text>
       <Text style={[styles.subtitle, { color: theme.textSub }]}>Small real-world actions that keep you prepared</Text>
 

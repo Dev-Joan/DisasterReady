@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import Text from '../components/Text';
 import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 import apiRequest from '../services/api';
@@ -9,9 +10,11 @@ import { useAccessibility, touchTargetProps, touchTargetStyle } from '../context
 import AnimatedProgressBar from '../components/AnimatedProgressBar';
 import CountUpNumber from '../components/CountUpNumber';
 import Celebration from '../components/Celebration';
+import BadgeUnlockOverlay from '../components/BadgeUnlockOverlay';
+import useBadgeUnlock from '../hooks/useBadgeUnlock';
 import { SPACING, TYPE, RADII, AGE_PALETTES, SEMANTIC } from '../constants/tokens';
 
-const TOPICS = ['earthquake', 'flood'];
+const TOPICS = ['earthquake', 'flood', 'wildfire', 'severe_weather', 'general_prep'];
 const NAVY = AGE_PALETTES.adult.navy;
 
 const DIFFICULTY_LABELS = { 1: 'Easy', 2: 'Medium', 3: 'Hard' };
@@ -21,6 +24,10 @@ const ENGINES = [
   { key: 'bkt', label: '🧠 BKT (Adaptive)', blurb: 'Tracks a probabilistic P(mastery) per skill using Bayesian Knowledge Tracing, and picks question difficulty from it.' },
   { key: 'legacy', label: '📊 Baseline (Legacy)', blurb: 'The original heuristic: a rolling accuracy over your last 5 answers, thresholded to step difficulty up or down.' }
 ];
+
+function topicLabel(topic) {
+  return topic.replace(/_/g, ' ');
+}
 
 function metricColor(pct) {
   if (pct === null) return NAVY;
@@ -43,6 +50,35 @@ export default function QuizScreen() {
   const [knowledge, setKnowledge] = useState(null);
   const [lastResult, setLastResult] = useState(null);
   const [justMastered, setJustMastered] = useState(false);
+  // Tracked separately from lastResult.gamification, which the backend only
+  // populates when THIS specific answer earned points (i.e. never on a
+  // wrong answer) — rendering total points straight from that field made
+  // the whole "Total points" line vanish after every wrong answer and
+  // reappear with a new number after the next correct one, which read as a
+  // glitch rather than an accumulating total. This persists across answers
+  // regardless of whether the current one scored.
+  const [totalPoints, setTotalPoints] = useState(null);
+  // Quiz answers have no natural idempotency key server-side (unlike tasks
+  // or lessons) — every POST to /quiz/answer is a legitimate new data point
+  // by design, so nothing on the backend can tell a genuine second answer
+  // apart from an accidental double-tap re-firing the same one. The only
+  // place this can be prevented is here: block re-entry into submitAnswer
+  // while one is already in flight, and disable the buttons to match.
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mode, setMode] = useState('adult');
+  const [gamBadges, setGamBadges] = useState(null);
+  const { unlockedBadge, dismissBadgeUnlock } = useBadgeUnlock(gamBadges);
+  const accent = AGE_PALETTES[mode]?.primary || NAVY;
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      apiRequest(`/onboarding/profile?userId=${userId}`, 'GET')
+        .then((profile) => { if (active) setMode(profile.experienceMode || 'adult'); })
+        .catch(() => {});
+      return () => { active = false; };
+    }, [userId])
+  );
 
   const switchEngine = (key) => {
     if (key === engineMode) return;
@@ -81,6 +117,8 @@ export default function QuizScreen() {
   };
 
   const submitAnswer = async (wasCorrect) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     const wasMasteredBefore = knowledge?.mastered || false;
     try {
       const result = await apiRequest('/quiz/answer', 'POST', {
@@ -89,9 +127,15 @@ export default function QuizScreen() {
       setLastResult(result);
       setKnowledge({ ...readMetric(result), difficulty: result.newDifficulty, mastered: result.mastered });
       setJustMastered(!wasMasteredBefore && result.mastered);
+      if (result.gamification) {
+        setTotalPoints(result.gamification.points);
+        setGamBadges(result.gamification.badges || []);
+      }
       setQuestion(null);
     } catch (err) {
       Alert.alert('Error', err.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -100,6 +144,7 @@ export default function QuizScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       {justMastered && <Celebration colors={[NAVY, SEMANTIC.success, AGE_PALETTES.adult.amber]} />}
+      <BadgeUnlockOverlay badgeId={unlockedBadge} accent={accent} onDismiss={dismissBadgeUnlock} />
 
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={[styles.title, { color: theme.text }]}>Adaptive Quiz</Text>
@@ -134,10 +179,11 @@ export default function QuizScreen() {
               style={[styles.topicButton, { backgroundColor: theme.card, borderColor: theme.border }, topic === t && { borderColor: NAVY }, touchTargetStyle(a11y, 44)]}
               onPress={() => fetchQuestion(t)}
               accessibilityRole="button"
-              accessibilityLabel={`${t} quiz topic`}
+              accessibilityLabel={`${topicLabel(t)} quiz topic`}
+              accessibilityState={{ selected: topic === t }}
               {...touchTargetProps(a11y)}
             >
-              <Text style={[styles.topicButtonText, { color: theme.text }]}>{t}</Text>
+              <Text style={[styles.topicButtonText, { color: theme.text }]}>{topicLabel(t)}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -149,7 +195,7 @@ export default function QuizScreen() {
         {knowledge && (
           <Animated.View entering={FadeInDown.duration(280)} style={[styles.knowledgeCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
             <View style={styles.knowledgeHeaderRow}>
-              <Text style={[styles.knowledgeLabel, { color: theme.textSub }]}>{knowledge.label} — {topic}</Text>
+              <Text style={[styles.knowledgeLabel, { color: theme.textSub }]}>{knowledge.label} — {topicLabel(topic)}</Text>
               {knowledge.pct !== null && (
                 <CountUpNumber value={knowledge.pct} suffix="%" style={[styles.knowledgePct, { color: metricColor(knowledge.pct) }]} />
               )}
@@ -166,7 +212,7 @@ export default function QuizScreen() {
                 </Text>
               </View>
               {knowledge.mastered && (
-                <Animated.View entering={ZoomIn.springify().damping(9)} style={styles.masteredPill}>
+                <Animated.View entering={ZoomIn.duration(160).springify().damping(16)} style={styles.masteredPill}>
                   <Text style={styles.masteredPillText}>✅ MASTERED</Text>
                 </Animated.View>
               )}
@@ -180,10 +226,26 @@ export default function QuizScreen() {
 
             <Text style={[styles.hint, { color: theme.textSub }]}>(For this prototype, mark whether you got it right)</Text>
             <View style={styles.answerRow}>
-              <TouchableOpacity style={[styles.correctButton, touchTargetStyle(a11y, 44)]} onPress={() => submitAnswer(true)} accessibilityRole="button" accessibilityLabel="I got it right" {...touchTargetProps(a11y)}>
+              <TouchableOpacity
+                style={[styles.correctButton, touchTargetStyle(a11y, 44), isSubmitting && styles.buttonDisabled]}
+                onPress={() => submitAnswer(true)}
+                disabled={isSubmitting}
+                accessibilityRole="button"
+                accessibilityLabel="I got it right"
+                accessibilityState={{ disabled: isSubmitting }}
+                {...touchTargetProps(a11y)}
+              >
                 <Text style={styles.buttonText}>I got it right</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.wrongButton, touchTargetStyle(a11y, 44)]} onPress={() => submitAnswer(false)} accessibilityRole="button" accessibilityLabel="I got it wrong" {...touchTargetProps(a11y)}>
+              <TouchableOpacity
+                style={[styles.wrongButton, touchTargetStyle(a11y, 44), isSubmitting && styles.buttonDisabled]}
+                onPress={() => submitAnswer(false)}
+                disabled={isSubmitting}
+                accessibilityRole="button"
+                accessibilityLabel="I got it wrong"
+                accessibilityState={{ disabled: isSubmitting }}
+                {...touchTargetProps(a11y)}
+              >
                 <Text style={styles.buttonText}>I got it wrong</Text>
               </TouchableOpacity>
             </View>
@@ -195,8 +257,11 @@ export default function QuizScreen() {
             <Text style={[styles.resultText, { color: theme.text }]}>
               Next difficulty: {DIFFICULTY_LABELS[lastResult.newDifficulty] || lastResult.newDifficulty}
             </Text>
-            {lastResult.gamification && (
-              <Text style={[styles.resultText, { color: theme.text }]}>Total points: {lastResult.gamification.points}</Text>
+            {totalPoints !== null && (
+              <View style={{ flexDirection: 'row' }}>
+                <Text style={[styles.resultText, { color: theme.text }]}>Total points: </Text>
+                <CountUpNumber value={totalPoints} style={[styles.resultText, { color: theme.text, fontWeight: 'bold' }]} />
+              </View>
             )}
             <TouchableOpacity style={[styles.button, touchTargetStyle(a11y, 44)]} onPress={() => fetchQuestion(topic)} accessibilityRole="button" accessibilityLabel="Next question" {...touchTargetProps(a11y)}>
               <Text style={styles.buttonText}>Next Question</Text>
@@ -217,8 +282,8 @@ const styles = StyleSheet.create({
   engineButtonText: { fontWeight: 'bold', fontSize: TYPE.caption.fontSize + 1 },
   engineBlurb: { fontSize: TYPE.caption.fontSize, lineHeight: 17, marginBottom: SPACING.xl },
 
-  topicRow: { flexDirection: 'row', marginBottom: SPACING.lg },
-  topicButton: { padding: SPACING.md, borderRadius: RADII.adult.button - 4, borderWidth: 1, marginRight: SPACING.md },
+  topicRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: SPACING.lg },
+  topicButton: { padding: SPACING.md, borderRadius: RADII.adult.button - 4, borderWidth: 1, marginRight: SPACING.sm, marginBottom: SPACING.sm },
   topicButtonText: { fontWeight: 'bold' },
 
   knowledgeCard: { padding: SPACING.lg, borderRadius: RADII.adult.button - 4, borderWidth: 1, marginBottom: SPACING.lg },
@@ -238,6 +303,7 @@ const styles = StyleSheet.create({
   answerRow: { flexDirection: 'row', justifyContent: 'space-between' },
   correctButton: { backgroundColor: SEMANTIC.success, padding: SPACING.md, borderRadius: RADII.adult.button - 4, flex: 1, marginRight: SPACING.sm, alignItems: 'center' },
   wrongButton: { backgroundColor: SEMANTIC.critical, padding: SPACING.md, borderRadius: RADII.adult.button - 4, flex: 1, marginLeft: SPACING.sm, alignItems: 'center' },
+  buttonDisabled: { opacity: 0.5 },
   resultBox: { padding: SPACING.lg, borderRadius: RADII.adult.button - 4, borderWidth: 1 },
   resultText: { fontSize: TYPE.body.fontSize + 1, marginBottom: SPACING.xs },
   button: { backgroundColor: NAVY, padding: SPACING.md + 2, borderRadius: RADII.adult.button - 4, alignItems: 'center', marginTop: SPACING.md },

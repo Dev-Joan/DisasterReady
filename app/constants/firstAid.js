@@ -2,8 +2,8 @@ export const EMERGENCY_DISCLAIMER =
   'This is general guidance, not a substitute for professional medical training. In a real emergency, call your local emergency number immediately before or while giving aid.';
 
 export const FIRST_AID_CATEGORIES = [
-  { key: 'medical', label: 'Medical Emergencies', icon: { set: 'MaterialCommunityIcons', name: 'medical-bag' } },
-  { key: 'disaster', label: 'During a Disaster', icon: { set: 'MaterialCommunityIcons', name: 'weather-hurricane' } }
+  { key: 'medical', label: 'Medical Emergencies', icon: { set: 'MaterialCommunityIcons', name: 'medical-bag' }, color: '#B91C1C' },
+  { key: 'disaster', label: 'During a Disaster', icon: { set: 'MaterialCommunityIcons', name: 'weather-hurricane' }, color: '#1E3A8A' }
 ];
 
 export const FIRST_AID_GUIDES = [

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import Text from '../components/Text';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
+import { useAudioPlayer } from 'expo-audio';
 import * as Haptics from 'expo-haptics';
 import apiRequest from '../services/api';
 import { useUser } from '../context/UserContext';
@@ -11,20 +12,61 @@ import { MEETING_POINT_OPTIONS, FAMILY_MEMBER_OPTIONS, GO_BAG_ITEMS } from '../c
 import BouncyPress from '../components/BouncyPress';
 import BouncyMascot from '../components/BouncyMascot';
 import Celebration from '../components/Celebration';
+import HearButton from '../components/HearButton';
+import useKidSpeech from '../hooks/useKidSpeech';
+
+// Redesigned for readers as young as 6: every step is a grid of big
+// picture tiles (giant emoji + a 1-3 word label) instead of rows of text
+// to read, and the free-text "add a detail" field is gone entirely — a
+// 6-10 year old shouldn't need to type to finish this. Each option's full
+// sentence still exists as `speak` text in constants/familyPlan.js and is
+// read aloud with expo-speech (useKidSpeech) on selection and on demand
+// via the 🔊 button, so the idea is never locked behind reading ability.
+const TILE_COLORS = ['#FEF3C7', '#DBEAFE', '#FCE7F3', '#DCFCE7', '#FFE4E6', '#E0E7FF'];
+
+const packSound = require('../assets/sounds/pack.wav');
+const tickSound = require('../assets/sounds/tick.wav');
+
+function PictureTile({ emoji, label, color, selected, badge, onPress }) {
+  const { settings: a11y } = useAccessibility();
+  return (
+    <BouncyPress
+      style={[styles.tile, { backgroundColor: color }, selected && styles.tileSelected]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: !!selected }}
+      {...touchTargetProps(a11y)}
+    >
+      <Text style={styles.tileEmoji}>{emoji}</Text>
+      <Text style={styles.tileLabel} numberOfLines={2}>{label}</Text>
+      {badge != null && (
+        <Animated.View entering={ZoomIn.duration(200).springify().damping(11)} style={styles.tileBadge}>
+          <Text style={styles.tileBadgeText}>{badge}</Text>
+        </Animated.View>
+      )}
+      {selected && badge == null && (
+        <Animated.Text entering={ZoomIn.duration(200).springify().damping(11)} style={styles.tileCheck}>✅</Animated.Text>
+      )}
+    </BouncyPress>
+  );
+}
 
 export default function FamilyPlanBuilderScreen({ navigation }) {
   const { userId } = useUser();
   const { settings: a11y } = useAccessibility();
+  const { speak } = useKidSpeech();
   const [loading, setLoading] = useState(true);
   const [hadExistingPlan, setHadExistingPlan] = useState(false);
   const [step, setStep] = useState('meeting'); // meeting | calls | bag | review | saved
   const [meetingPointId, setMeetingPointId] = useState(null);
-  const [meetingDetail, setMeetingDetail] = useState('');
   const [callOrder, setCallOrder] = useState([]);
   const [goBag, setGoBag] = useState([]);
-  const [expandedItem, setExpandedItem] = useState(null);
   const [saving, setSaving] = useState(false);
   const [justEarnedBadge, setJustEarnedBadge] = useState(false);
+
+  const packPlayer = useAudioPlayer(packSound);
+  const tickPlayer = useAudioPlayer(tickSound);
 
   useEffect(() => {
     apiRequest(`/gamification/family-plan?userId=${userId}`, 'GET')
@@ -32,7 +74,6 @@ export default function FamilyPlanBuilderScreen({ navigation }) {
         if (res.familyPlan) {
           setHadExistingPlan(true);
           setMeetingPointId(res.familyPlan.meetingPoint.id);
-          setMeetingDetail(res.familyPlan.meetingPoint.detail || '');
           setCallOrder(res.familyPlan.callOrder || []);
           setGoBag(res.familyPlan.goBag || []);
         }
@@ -41,23 +82,67 @@ export default function FamilyPlanBuilderScreen({ navigation }) {
       .finally(() => setLoading(false));
   }, [userId]);
 
-  const toggleCallMember = (id) => {
+  useEffect(() => {
+    if (loading) return;
+    if (step === 'meeting') speak('Where should your family meet?');
+    if (step === 'calls') speak('Who do you call? Tap people in order.');
+    if (step === 'bag') speak("What's in your go-bag? Tap to pack it.");
+    if (step === 'review') speak("Here's your plan! Tap Save when you're ready.");
+    if (step === 'saved') speak('Your family plan is saved! Great job!');
+  }, [step, loading]);
+
+  const pickMeeting = (opt) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setCallOrder((prev) => (prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]));
+    packPlayer.seekTo(0); packPlayer.play();
+    speak(opt.speak);
+    setMeetingPointId(opt.id);
   };
 
-  const toggleBagItem = (id) => {
+  const toggleCallMember = (opt) => {
+    const already = callOrder.includes(opt.id);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setGoBag((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
+    if (already) {
+      tickPlayer.seekTo(0); tickPlayer.play();
+      setCallOrder((prev) => prev.filter((m) => m !== opt.id));
+    } else {
+      packPlayer.seekTo(0); packPlayer.play();
+      speak(opt.speak);
+      setCallOrder((prev) => [...prev, opt.id]);
+    }
+  };
+
+  const toggleBagItem = (opt) => {
+    const already = goBag.includes(opt.id);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (already) {
+      tickPlayer.seekTo(0); tickPlayer.play();
+      setGoBag((prev) => prev.filter((i) => i !== opt.id));
+    } else {
+      packPlayer.seekTo(0); packPlayer.play();
+      speak(opt.speak);
+      setGoBag((prev) => [...prev, opt.id]);
+    }
+  };
+
+  const speakWholePlan = () => {
+    const meetingOpt = MEETING_POINT_OPTIONS.find((m) => m.id === meetingPointId);
+    const callNames = callOrder.map((id) => FAMILY_MEMBER_OPTIONS.find((f) => f.id === id)?.label).filter(Boolean).join(', then ');
+    const bagNames = goBag.map((id) => GO_BAG_ITEMS.find((g) => g.id === id)?.label).filter(Boolean).join(', ');
+    const parts = [
+      meetingOpt ? `Meet at the ${meetingOpt.label}.` : '',
+      callNames ? `Call: ${callNames}.` : '',
+      bagNames ? `Pack: ${bagNames}.` : 'Pack your go-bag.'
+    ].filter(Boolean);
+    speak(parts.join(' '));
   };
 
   const savePlan = async () => {
     setSaving(true);
     try {
       const meetingOpt = MEETING_POINT_OPTIONS.find((m) => m.id === meetingPointId);
-      const result = await apiRequest('/gamification/family-plan', 'POST', {
+      await apiRequest('/gamification/family-plan', 'POST', {
         userId,
-        meetingPoint: { id: meetingPointId, label: meetingOpt.label, detail: meetingDetail.trim() },
+        meetingPoint: { id: meetingPointId, label: meetingOpt.label, detail: '' },
         callOrder,
         goBag
       });
@@ -74,48 +159,61 @@ export default function FamilyPlanBuilderScreen({ navigation }) {
 
   if (loading) return <LoadingState message="Checking your family plan..." />;
 
+  const meetingOpt = MEETING_POINT_OPTIONS.find((m) => m.id === meetingPointId);
+
+  const PlanSummary = () => (
+    <View style={styles.summaryCard}>
+      <Text style={styles.summaryLabel}>🏡 MEET HERE</Text>
+      {meetingOpt && (
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryEmoji}>{meetingOpt.emoji}</Text>
+          <Text style={styles.summaryText}>{meetingOpt.label}</Text>
+        </View>
+      )}
+
+      <Text style={[styles.summaryLabel, { marginTop: 14 }]}>📞 CALL, IN ORDER</Text>
+      <View style={styles.summaryChipsRow}>
+        {callOrder.map((id, i) => {
+          const m = FAMILY_MEMBER_OPTIONS.find((f) => f.id === id);
+          return (
+            <View key={id} style={styles.summaryChip}>
+              <Text style={styles.summaryChipBadge}>{i + 1}</Text>
+              <Text style={styles.summaryChipEmoji}>{m.emoji}</Text>
+              <Text style={styles.summaryChipText} numberOfLines={1}>{m.label}</Text>
+            </View>
+          );
+        })}
+      </View>
+
+      <Text style={[styles.summaryLabel, { marginTop: 14 }]}>🎒 GO-BAG</Text>
+      <View style={styles.summaryChipsRow}>
+        {goBag.length === 0 && <Text style={styles.summaryEmptyText}>Nothing packed yet</Text>}
+        {goBag.map((id) => {
+          const item = GO_BAG_ITEMS.find((g) => g.id === id);
+          return (
+            <View key={id} style={styles.summaryChip}>
+              <Text style={styles.summaryChipEmoji}>{item.emoji}</Text>
+              <Text style={styles.summaryChipText} numberOfLines={1}>{item.label}</Text>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+
   if (step === 'saved') {
-    const meetingOpt = MEETING_POINT_OPTIONS.find((m) => m.id === meetingPointId);
     return (
       <ScrollView style={styles.screen} contentContainerStyle={styles.center}>
         <Celebration colors={['#16A34A', '#FBBF24', '#38BDF8', '#F472B6']} />
-        <BouncyMascot size={48} emoji="🦊📋" />
-        <Text style={styles.title}>Your Family Plan is Saved!</Text>
-        {justEarnedBadge && <Text style={styles.badgeCallout}>👨‍👩‍👧‍👦 Family Planner badge earned! +40 XP</Text>}
-
-        <View style={styles.card}>
-          <Text style={styles.cardLabel}>MEETING POINT</Text>
-          <Text style={styles.cardValue}>{meetingOpt.emoji} {meetingOpt.label}{meetingDetail ? ` — ${meetingDetail}` : ''}</Text>
-
-          <Text style={[styles.cardLabel, { marginTop: 16 }]}>WHO TO CALL, IN ORDER</Text>
-          {callOrder.map((id, i) => {
-            const m = FAMILY_MEMBER_OPTIONS.find((f) => f.id === id);
-            return <Text key={id} style={styles.cardValue}>{i + 1}. {m.emoji} {m.label}</Text>;
-          })}
-
-          <Text style={[styles.cardLabel, { marginTop: 16 }]}>GO-BAG CHECKLIST</Text>
-          {goBag.map((id) => {
-            const item = GO_BAG_ITEMS.find((g) => g.id === id);
-            return <Text key={id} style={styles.cardValue}>✅ {item.emoji} {item.label}</Text>;
-          })}
-        </View>
-
-        <BouncyPress
-          style={styles.startButton}
-          onPress={() => setStep('meeting')}
-          accessibilityRole="button"
-          accessibilityLabel="Edit my plan"
-          {...touchTargetProps(a11y)}
-        >
+        <BouncyMascot size={56} emoji="🦊📋" />
+        <Text style={styles.title}>Plan Saved!</Text>
+        {justEarnedBadge && <Text style={styles.badgeCallout}>👨‍👩‍👧‍👦 New badge! +40 XP</Text>}
+        <HearButton onPress={speakWholePlan} label="Hear my plan" />
+        <PlanSummary />
+        <BouncyPress style={styles.startButton} onPress={() => setStep('meeting')} accessibilityRole="button" accessibilityLabel="Edit my plan" {...touchTargetProps(a11y)}>
           <Text style={styles.startButtonText}>✏️ Edit My Plan</Text>
         </BouncyPress>
-        <BouncyPress
-          style={styles.secondaryButton}
-          onPress={() => navigation.goBack()}
-          accessibilityRole="button"
-          accessibilityLabel="Back home"
-          {...touchTargetProps(a11y)}
-        >
+        <BouncyPress style={styles.secondaryButton} onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel="Back home" {...touchTargetProps(a11y)}>
           <Text style={styles.secondaryButtonText}>Back Home</Text>
         </BouncyPress>
       </ScrollView>
@@ -125,8 +223,7 @@ export default function FamilyPlanBuilderScreen({ navigation }) {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
       <BouncyMascot size={48} emoji="🦊👨‍👩‍👧‍👦" />
-      <Text style={styles.title}>Family Plan Builder</Text>
-      <Text style={styles.introText}>{hadExistingPlan ? 'Edit your family\'s real emergency plan.' : 'Build a real plan your family can use — no timer, just think it through!'}</Text>
+      <Text style={styles.title}>Family Plan</Text>
 
       <View style={styles.stepDots}>
         {['meeting', 'calls', 'bag', 'review'].map((s) => (
@@ -136,31 +233,22 @@ export default function FamilyPlanBuilderScreen({ navigation }) {
 
       {step === 'meeting' && (
         <Animated.View entering={FadeInDown.duration(280)}>
-          <Text style={styles.sectionTitle}>Where should your family meet if you can't go home?</Text>
-          {MEETING_POINT_OPTIONS.map((opt) => (
-            <TouchableOpacity
-              key={opt.id}
-              style={[styles.optionRow, meetingPointId === opt.id && styles.optionSelected]}
-              onPress={() => { setMeetingPointId(opt.id); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
-              accessibilityRole="button"
-              accessibilityLabel={opt.label}
-              accessibilityState={{ selected: meetingPointId === opt.id }}
-              {...touchTargetProps(a11y)}
-            >
-              <Text style={styles.optionEmoji}>{opt.emoji}</Text>
-              <Text style={styles.optionText}>{opt.label}</Text>
-            </TouchableOpacity>
-          ))}
-          {meetingPointId && (
-            <TextInput
-              style={styles.input}
-              placeholder="Add a detail (e.g. the oak tree by Grandma's yard)"
-              placeholderTextColor="#94A3B8"
-              value={meetingDetail}
-              onChangeText={setMeetingDetail}
-              accessibilityLabel="Meeting point detail"
-            />
-          )}
+          <View style={styles.sectionTitleRow}>
+            <Text style={styles.sectionTitle}>Where do we meet?</Text>
+            <HearButton onPress={() => speak('Where should your family meet if you can\'t go home?')} />
+          </View>
+          <View style={styles.grid}>
+            {MEETING_POINT_OPTIONS.map((opt, i) => (
+              <PictureTile
+                key={opt.id}
+                emoji={opt.emoji}
+                label={opt.label}
+                color={TILE_COLORS[i % TILE_COLORS.length]}
+                selected={meetingPointId === opt.id}
+                onPress={() => pickMeeting(opt)}
+              />
+            ))}
+          </View>
           <BouncyPress
             style={[styles.nextButton, !meetingPointId && styles.nextButtonDisabled]}
             disabled={!meetingPointId}
@@ -177,57 +265,29 @@ export default function FamilyPlanBuilderScreen({ navigation }) {
 
       {step === 'calls' && (
         <Animated.View entering={FadeInDown.duration(280)}>
-          <Text style={styles.sectionTitle}>Who do you call, and in what order?</Text>
-          <Text style={styles.sectionSub}>Tap people in the order your family should call them. Tap again to remove.</Text>
-
-          {callOrder.length > 0 && (
-            <View style={styles.chain}>
-              {callOrder.map((id, i) => {
-                const m = FAMILY_MEMBER_OPTIONS.find((f) => f.id === id);
-                return (
-                  <View key={id} style={styles.chainRow}>
-                    <View style={styles.chainNode}><Text style={styles.chainNodeText}>{i + 1}</Text></View>
-                    <TouchableOpacity
-                      style={styles.chainItem}
-                      onPress={() => toggleCallMember(id)}
-                      accessibilityRole="button"
-                      accessibilityLabel={m.label}
-                      accessibilityHint="Removes this person from the call order"
-                      {...touchTargetProps(a11y)}
-                    >
-                      <Text style={styles.chainItemText}>{m.emoji} {m.label}</Text>
-                    </TouchableOpacity>
-                    {i < callOrder.length - 1 && <View style={styles.chainLine} />}
-                  </View>
-                );
-              })}
-            </View>
-          )}
-
-          <View style={styles.pool}>
-            {FAMILY_MEMBER_OPTIONS.filter((m) => !callOrder.includes(m.id)).map((m) => (
-              <TouchableOpacity
-                key={m.id}
-                style={styles.poolChip}
-                onPress={() => toggleCallMember(m.id)}
-                accessibilityRole="button"
-                accessibilityLabel={m.label}
-                accessibilityHint="Adds this person to the call order"
-                {...touchTargetProps(a11y)}
-              >
-                <Text style={styles.poolChipText}>{m.emoji} {m.label}</Text>
-              </TouchableOpacity>
-            ))}
+          <View style={styles.sectionTitleRow}>
+            <Text style={styles.sectionTitle}>Who do we call?</Text>
+            <HearButton onPress={() => speak('Tap people in the order your family should call them.')} />
           </View>
-
+          <Text style={styles.sectionSub}>Tap in order. Tap again to remove.</Text>
+          <View style={styles.grid}>
+            {FAMILY_MEMBER_OPTIONS.map((opt, i) => {
+              const orderIndex = callOrder.indexOf(opt.id);
+              return (
+                <PictureTile
+                  key={opt.id}
+                  emoji={opt.emoji}
+                  label={opt.label}
+                  color={TILE_COLORS[i % TILE_COLORS.length]}
+                  selected={orderIndex !== -1}
+                  badge={orderIndex !== -1 ? orderIndex + 1 : null}
+                  onPress={() => toggleCallMember(opt)}
+                />
+              );
+            })}
+          </View>
           <View style={styles.rowButtons}>
-            <BouncyPress
-              style={styles.backButton}
-              onPress={() => setStep('meeting')}
-              accessibilityRole="button"
-              accessibilityLabel="Back"
-              {...touchTargetProps(a11y)}
-            >
+            <BouncyPress style={styles.backButton} onPress={() => setStep('meeting')} accessibilityRole="button" accessibilityLabel="Back" {...touchTargetProps(a11y)}>
               <Text style={styles.backButtonText}>◀ Back</Text>
             </BouncyPress>
             <BouncyPress
@@ -247,60 +307,27 @@ export default function FamilyPlanBuilderScreen({ navigation }) {
 
       {step === 'bag' && (
         <Animated.View entering={FadeInDown.duration(280)}>
-          <Text style={styles.sectionTitle}>What should be in your family's go-bag?</Text>
-          <Text style={styles.sectionSub}>Tap an item to check it off. Tap it again to see why it matters.</Text>
-
-          {GO_BAG_ITEMS.map((item) => {
-            const checked = goBag.includes(item.id);
-            return (
-              <View key={item.id}>
-                <TouchableOpacity
-                  style={[styles.checklistRow, checked && styles.checklistRowChecked]}
-                  onPress={() => setExpandedItem((cur) => (cur === item.id ? null : item.id))}
-                  accessibilityRole="button"
-                  accessibilityLabel={item.label}
-                  accessibilityHint={expandedItem === item.id ? 'Hides why this item matters' : 'Shows why this item matters'}
-                  {...touchTargetProps(a11y)}
-                >
-                  <TouchableOpacity
-                    onPress={() => toggleBagItem(item.id)}
-                    style={[styles.checkbox, checked && styles.checkboxChecked]}
-                    accessibilityRole="checkbox"
-                    accessibilityLabel={`Pack ${item.label}`}
-                    accessibilityState={{ checked }}
-                    {...touchTargetProps(a11y)}
-                  >
-                    {checked && <Text style={styles.checkboxMark}>✓</Text>}
-                  </TouchableOpacity>
-                  <Text style={styles.checklistEmoji}>{item.emoji}</Text>
-                  <Text style={styles.checklistText}>{item.label}</Text>
-                </TouchableOpacity>
-                {expandedItem === item.id && (
-                  <Animated.View entering={FadeInDown.duration(200)} style={styles.whyBox}>
-                    <Text style={styles.whyText}>{item.why}</Text>
-                  </Animated.View>
-                )}
-              </View>
-            );
-          })}
-
+          <View style={styles.sectionTitleRow}>
+            <Text style={styles.sectionTitle}>Pack your bag!</Text>
+            <HearButton onPress={() => speak("Tap each item to pack it in your go-bag.")} />
+          </View>
+          <View style={styles.grid}>
+            {GO_BAG_ITEMS.map((item, i) => (
+              <PictureTile
+                key={item.id}
+                emoji={item.emoji}
+                label={item.label}
+                color={TILE_COLORS[i % TILE_COLORS.length]}
+                selected={goBag.includes(item.id)}
+                onPress={() => toggleBagItem(item)}
+              />
+            ))}
+          </View>
           <View style={styles.rowButtons}>
-            <BouncyPress
-              style={styles.backButton}
-              onPress={() => setStep('calls')}
-              accessibilityRole="button"
-              accessibilityLabel="Back"
-              {...touchTargetProps(a11y)}
-            >
+            <BouncyPress style={styles.backButton} onPress={() => setStep('calls')} accessibilityRole="button" accessibilityLabel="Back" {...touchTargetProps(a11y)}>
               <Text style={styles.backButtonText}>◀ Back</Text>
             </BouncyPress>
-            <BouncyPress
-              style={styles.nextButton}
-              onPress={() => setStep('review')}
-              accessibilityRole="button"
-              accessibilityLabel="Review"
-              {...touchTargetProps(a11y)}
-            >
+            <BouncyPress style={styles.nextButton} onPress={() => setStep('review')} accessibilityRole="button" accessibilityLabel="Review" {...touchTargetProps(a11y)}>
               <Text style={styles.nextButtonText}>Review ▶</Text>
             </BouncyPress>
           </View>
@@ -309,34 +336,13 @@ export default function FamilyPlanBuilderScreen({ navigation }) {
 
       {step === 'review' && (
         <Animated.View entering={FadeInDown.duration(280)}>
-          <Text style={styles.sectionTitle}>Here's your plan!</Text>
-          <View style={styles.card}>
-            <Text style={styles.cardLabel}>MEETING POINT</Text>
-            <Text style={styles.cardValue}>
-              {MEETING_POINT_OPTIONS.find((m) => m.id === meetingPointId)?.emoji} {MEETING_POINT_OPTIONS.find((m) => m.id === meetingPointId)?.label}
-              {meetingDetail ? ` — ${meetingDetail}` : ''}
-            </Text>
-            <Text style={[styles.cardLabel, { marginTop: 16 }]}>WHO TO CALL, IN ORDER</Text>
-            {callOrder.map((id, i) => {
-              const m = FAMILY_MEMBER_OPTIONS.find((f) => f.id === id);
-              return <Text key={id} style={styles.cardValue}>{i + 1}. {m.emoji} {m.label}</Text>;
-            })}
-            <Text style={[styles.cardLabel, { marginTop: 16 }]}>GO-BAG CHECKLIST</Text>
-            {goBag.length === 0 && <Text style={styles.cardValue}>No items checked yet</Text>}
-            {goBag.map((id) => {
-              const item = GO_BAG_ITEMS.find((g) => g.id === id);
-              return <Text key={id} style={styles.cardValue}>✅ {item.emoji} {item.label}</Text>;
-            })}
+          <View style={styles.sectionTitleRow}>
+            <Text style={styles.sectionTitle}>Your Plan!</Text>
+            <HearButton onPress={speakWholePlan} label="Hear my plan" />
           </View>
-
+          <PlanSummary />
           <View style={styles.rowButtons}>
-            <BouncyPress
-              style={styles.backButton}
-              onPress={() => setStep('bag')}
-              accessibilityRole="button"
-              accessibilityLabel="Back"
-              {...touchTargetProps(a11y)}
-            >
+            <BouncyPress style={styles.backButton} onPress={() => setStep('bag')} accessibilityRole="button" accessibilityLabel="Back" {...touchTargetProps(a11y)}>
               <Text style={styles.backButtonText}>◀ Back</Text>
             </BouncyPress>
             <BouncyPress
@@ -348,7 +354,7 @@ export default function FamilyPlanBuilderScreen({ navigation }) {
               accessibilityState={{ disabled: saving, busy: saving }}
               {...touchTargetProps(a11y)}
             >
-              <Text style={styles.nextButtonText}>{saving ? 'Saving...' : '💾 Save My Plan'}</Text>
+              <Text style={styles.nextButtonText}>{saving ? 'Saving...' : '💾 Save'}</Text>
             </BouncyPress>
           </View>
         </Animated.View>
@@ -360,44 +366,25 @@ export default function FamilyPlanBuilderScreen({ navigation }) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#F0FDF4' },
   center: { flexGrow: 1, alignItems: 'center', padding: 28 },
-  title: { fontSize: 22, fontWeight: 'bold', color: '#1E293B', textAlign: 'center', marginBottom: 8 },
-  introText: { fontSize: 14, color: '#166534', textAlign: 'center', lineHeight: 20, marginBottom: 16 },
-  badgeCallout: { fontSize: 14, fontWeight: 'bold', color: '#B45309', textAlign: 'center', marginBottom: 16 },
+  title: { fontSize: 24, fontWeight: 'bold', color: '#1E293B', textAlign: 'center', marginTop: 6, marginBottom: 8 },
+  badgeCallout: { fontSize: 14, fontWeight: 'bold', color: '#B45309', textAlign: 'center', marginBottom: 12 },
 
   stepDots: { flexDirection: 'row', justifyContent: 'center', marginBottom: 16 },
   stepDot: { width: 24, height: 6, borderRadius: 3, backgroundColor: '#BBF7D0', marginHorizontal: 3 },
   stepDotActive: { backgroundColor: '#16A34A' },
 
-  sectionTitle: { fontSize: 17, fontWeight: 'bold', color: '#1E293B', marginBottom: 6, textAlign: 'center' },
-  sectionSub: { fontSize: 13, color: '#166534', textAlign: 'center', marginBottom: 14 },
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+  sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#1E293B', textAlign: 'center', marginRight: 8 },
+  sectionSub: { fontSize: 13, color: '#166534', textAlign: 'center', marginBottom: 8 },
 
-  optionRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 14, borderWidth: 2, borderColor: '#DCFCE7', padding: 14, marginBottom: 10 },
-  optionSelected: { borderColor: '#16A34A', backgroundColor: '#ECFDF5' },
-  optionEmoji: { fontSize: 22, marginRight: 10 },
-  optionText: { fontSize: 14, fontWeight: 'bold', color: '#1E293B' },
-  input: { backgroundColor: '#fff', borderRadius: 12, borderWidth: 2, borderColor: '#DCFCE7', padding: 12, marginBottom: 14, color: '#1E293B' },
-
-  chain: { marginBottom: 14 },
-  chainRow: { flexDirection: 'row', alignItems: 'center', position: 'relative' },
-  chainNode: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#16A34A', alignItems: 'center', justifyContent: 'center', marginRight: 10 },
-  chainNodeText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
-  chainItem: { flex: 1, backgroundColor: '#fff', borderRadius: 12, borderWidth: 2, borderColor: '#16A34A', padding: 10, marginBottom: 18 },
-  chainItemText: { fontSize: 13, fontWeight: 'bold', color: '#1E293B' },
-  chainLine: { position: 'absolute', left: 13, top: 28, width: 2, height: 18, backgroundColor: '#16A34A' },
-
-  pool: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 16 },
-  poolChip: { backgroundColor: '#fff', borderRadius: 20, borderWidth: 2, borderColor: '#DCFCE7', paddingVertical: 8, paddingHorizontal: 14, marginRight: 8, marginBottom: 8 },
-  poolChipText: { fontSize: 13, fontWeight: 'bold', color: '#1E293B' },
-
-  checklistRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, borderWidth: 2, borderColor: '#DCFCE7', padding: 12, marginBottom: 4 },
-  checklistRowChecked: { borderColor: '#16A34A', backgroundColor: '#ECFDF5' },
-  checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: '#16A34A', alignItems: 'center', justifyContent: 'center', marginRight: 10 },
-  checkboxChecked: { backgroundColor: '#16A34A' },
-  checkboxMark: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
-  checklistEmoji: { fontSize: 18, marginRight: 8 },
-  checklistText: { fontSize: 13, fontWeight: 'bold', color: '#1E293B' },
-  whyBox: { backgroundColor: '#F0FDF4', borderRadius: 10, padding: 10, marginBottom: 10, marginLeft: 34 },
-  whyText: { fontSize: 12, color: '#166534', lineHeight: 17 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 10, marginBottom: 10 },
+  tile: { width: '28%', aspectRatio: 1, margin: '2.6%', borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: 'transparent', padding: 6 },
+  tileSelected: { borderColor: '#16A34A' },
+  tileEmoji: { fontSize: 34, marginBottom: 4 },
+  tileLabel: { fontSize: 12, fontWeight: 'bold', color: '#1E293B', textAlign: 'center' },
+  tileCheck: { position: 'absolute', top: 4, right: 6, fontSize: 18 },
+  tileBadge: { position: 'absolute', top: 4, right: 6, width: 22, height: 22, borderRadius: 11, backgroundColor: '#16A34A', alignItems: 'center', justifyContent: 'center' },
+  tileBadgeText: { color: '#fff', fontWeight: 'bold', fontSize: 12 },
 
   rowButtons: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
   backButton: { paddingVertical: 14, paddingHorizontal: 20 },
@@ -406,11 +393,19 @@ const styles = StyleSheet.create({
   nextButtonDisabled: { backgroundColor: '#BBF7D0' },
   nextButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
 
-  card: { width: '100%', backgroundColor: '#fff', borderRadius: 16, padding: 18, marginBottom: 16, borderWidth: 2, borderColor: '#DCFCE7' },
-  cardLabel: { fontSize: 11, fontWeight: 'bold', color: '#16A34A', letterSpacing: 1, marginBottom: 6 },
-  cardValue: { fontSize: 14, color: '#1E293B', marginBottom: 4, fontWeight: '600' },
+  summaryCard: { width: '100%', backgroundColor: '#fff', borderRadius: 16, padding: 16, marginTop: 10, marginBottom: 16, borderWidth: 2, borderColor: '#DCFCE7' },
+  summaryLabel: { fontSize: 11, fontWeight: 'bold', color: '#16A34A', letterSpacing: 1, marginBottom: 8 },
+  summaryRow: { flexDirection: 'row', alignItems: 'center' },
+  summaryEmoji: { fontSize: 26, marginRight: 8 },
+  summaryText: { fontSize: 16, fontWeight: 'bold', color: '#1E293B' },
+  summaryChipsRow: { flexDirection: 'row', flexWrap: 'wrap' },
+  summaryChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0FDF4', borderRadius: 20, paddingVertical: 6, paddingHorizontal: 10, marginRight: 8, marginBottom: 8, maxWidth: 140 },
+  summaryChipBadge: { fontSize: 12, fontWeight: 'bold', color: '#16A34A', marginRight: 4 },
+  summaryChipEmoji: { fontSize: 16, marginRight: 4 },
+  summaryChipText: { fontSize: 12, fontWeight: 'bold', color: '#1E293B' },
+  summaryEmptyText: { fontSize: 12, color: '#64748B', fontStyle: 'italic' },
 
-  startButton: { backgroundColor: '#16A34A', borderRadius: 16, paddingVertical: 14, paddingHorizontal: 36, marginBottom: 10 },
+  startButton: { backgroundColor: '#16A34A', borderRadius: 16, paddingVertical: 14, paddingHorizontal: 36, marginBottom: 10, marginTop: 6 },
   startButtonText: { fontSize: 15, fontWeight: 'bold', color: '#fff' },
   secondaryButton: { paddingVertical: 10 },
   secondaryButtonText: { fontSize: 14, color: '#166534', fontWeight: 'bold' }

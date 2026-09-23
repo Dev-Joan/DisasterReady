@@ -7,7 +7,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import apiRequest from '../services/api';
 import { useUser } from '../context/UserContext';
-import { useTheme } from '../context/ThemeContext';
 import { useAccessibility, touchTargetProps } from '../context/AccessibilityContext';
 import { TEEN_LESSONS as LESSONS } from '../constants/lessonSchema';
 import LoadingState from '../components/LoadingState';
@@ -60,7 +59,6 @@ function PulsingNode({ isCurrent, children }) {
 
 export default function LearningPathScreen({ navigation }) {
   const { userId } = useUser();
-  const { theme } = useTheme();
   const { settings: a11y } = useAccessibility();
   const [completed, setCompleted] = useState([]);
   const [gamification, setGamification] = useState(null);
@@ -108,39 +106,39 @@ export default function LearningPathScreen({ navigation }) {
   const streakFreezes = gamification.streakFreezes || 0;
 
   return (
-    <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={styles.container}>
-      <Text style={[styles.title, { color: theme.text }]}>Preparedness Path</Text>
-      <Text style={[styles.sub, { color: theme.textSub }]}>Complete lessons to unlock the next. Earn XP as you go.</Text>
+    <ScrollView style={{ backgroundColor: TEEN.slate }} contentContainerStyle={styles.container}>
+      <Text style={[styles.title, { color: TEEN.text }]}>Preparedness Path</Text>
+      <Text style={[styles.sub, { color: TEEN.textSub }]}>Complete lessons to unlock the next. Earn XP as you go.</Text>
 
       {/* Streak / Freeze / Daily Goal */}
-      <Animated.View entering={FadeInDown.duration(340).springify().damping(14)} style={[styles.statusCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+      <Animated.View entering={FadeInDown.duration(340).springify().damping(14)} style={[styles.statusCard, { backgroundColor: TEEN.base, borderColor: TEEN.border }]}>
         <View style={styles.statusRow}>
           <View style={styles.statusItem}>
             <FlameFlicker style={styles.statusEmoji}>🔥</FlameFlicker>
-            <CountUpNumber value={gamification.currentStreak} style={[styles.statusNum, { color: theme.text }]} />
-            <Text style={[styles.statusLabel, { color: theme.textSub }]}>Day streak</Text>
+            <CountUpNumber value={gamification.currentStreak} style={[styles.statusNum, { color: TEEN.text }]} />
+            <Text style={[styles.statusLabel, { color: TEEN.textSub }]}>Day streak</Text>
           </View>
-          <View style={[styles.statusDivider, { backgroundColor: theme.border }]} />
+          <View style={[styles.statusDivider, { backgroundColor: TEEN.border }]} />
           <View style={styles.statusItem}>
             <Text style={styles.statusEmoji}>🧊</Text>
-            <CountUpNumber value={streakFreezes} style={[styles.statusNum, { color: theme.text }]} />
-            <Text style={[styles.statusLabel, { color: theme.textSub }]}>Freezes</Text>
+            <CountUpNumber value={streakFreezes} style={[styles.statusNum, { color: TEEN.text }]} />
+            <Text style={[styles.statusLabel, { color: TEEN.textSub }]}>Freezes</Text>
           </View>
-          <View style={[styles.statusDivider, { backgroundColor: theme.border }]} />
+          <View style={[styles.statusDivider, { backgroundColor: TEEN.border }]} />
           <View style={styles.statusItem}>
             <Text style={styles.statusEmoji}>🎯</Text>
-            <CountUpNumber value={gamification.points} style={[styles.statusNum, { color: theme.text }]} />
-            <Text style={[styles.statusLabel, { color: theme.textSub }]}>Total XP</Text>
+            <CountUpNumber value={gamification.points} style={[styles.statusNum, { color: TEEN.text }]} />
+            <Text style={[styles.statusLabel, { color: TEEN.textSub }]}>Total XP</Text>
           </View>
         </View>
         <View style={styles.goalRow}>
-          <Text style={[styles.goalLabel, { color: theme.textSub }]}>Daily goal — {dailyXpEarned}/{dailyGoalXp} XP</Text>
-          <AnimatedProgressBar progress={dailyGoalPct} trackColor={theme.border} fillColor={dailyGoalPct >= 100 ? '#34D399' : TEAL} height={10} />
+          <Text style={[styles.goalLabel, { color: TEEN.textSub }]}>Daily goal — {dailyXpEarned}/{dailyGoalXp} XP</Text>
+          <AnimatedProgressBar progress={dailyGoalPct} trackColor={TEEN.border} fillColor={dailyGoalPct >= 100 ? '#34D399' : TEAL} height={10} />
         </View>
       </Animated.View>
 
       {/* League / Leaderboard */}
-      <Animated.View entering={FadeInDown.delay(80).duration(340).springify().damping(14)} style={[styles.leagueCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+      <Animated.View entering={FadeInDown.delay(80).duration(340).springify().damping(14)} style={[styles.leagueCard, { backgroundColor: TEEN.base, borderColor: TEEN.border }]}>
         <View style={styles.leagueHeader}>
           <Text style={styles.leagueTitle}>{leagueEmoji} {league}</Text>
           <BouncyPress
@@ -153,7 +151,7 @@ export default function LearningPathScreen({ navigation }) {
           </BouncyPress>
         </View>
         {leaderboard.length === 0 && (
-          <Text style={[styles.leagueEmpty, { color: theme.textSub }]}>Be the first teen to earn XP this week!</Text>
+          <Text style={[styles.leagueEmpty, { color: TEEN.textSub }]}>Be the first teen to earn XP this week!</Text>
         )}
         {leaderboard.map((entry, i) => (
           <Animated.View
@@ -162,7 +160,7 @@ export default function LearningPathScreen({ navigation }) {
             style={[styles.leagueRow, entry.userId === userId && { backgroundColor: TEAL + '18', borderRadius: RADII.teen.chip }]}
           >
             <Text style={styles.leagueRank}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</Text>
-            <Text style={[styles.leagueName, { color: theme.text }]} numberOfLines={1}>
+            <Text style={[styles.leagueName, { color: TEEN.text }]} numberOfLines={1}>
               {entry.username}{entry.userId === userId ? ' (You)' : ''}
             </Text>
             <CountUpNumber value={entry.points} suffix=" XP" style={[styles.leaguePoints, { color: INDIGO }]} />
@@ -188,7 +186,7 @@ export default function LearningPathScreen({ navigation }) {
                 styles.connectorLine,
                 {
                   left: from.x, top: from.y - 2, width: length,
-                  backgroundColor: segmentActive ? TEAL : theme.border,
+                  backgroundColor: segmentActive ? TEAL : TEEN.border,
                   transform: [{ rotate: `${angle}deg` }]
                 }
               ]}
@@ -209,7 +207,7 @@ export default function LearningPathScreen({ navigation }) {
               style={[styles.nodeWrap, { left: cx - LABEL_WIDTH / 2, top: cy - NODE_SIZE / 2 }]}
             >
               {isCurrent && (
-                <Animated.View entering={ZoomIn.delay(index * 90 + 200).springify().damping(9)} style={[styles.startBubble, { backgroundColor: CORAL }]}>
+                <Animated.View entering={ZoomIn.delay(index * 90 + 200).duration(180).springify().damping(16)} style={[styles.startBubble, { backgroundColor: CORAL }]}>
                   <Text style={styles.startBubbleText}>START</Text>
                 </Animated.View>
               )}
@@ -221,7 +219,7 @@ export default function LearningPathScreen({ navigation }) {
                   accessibilityLabel={`${lesson.title}. ${done ? 'Completed' : unlocked ? 'Ready to play' : 'Locked'}`}
                   style={[
                     styles.node,
-                    { backgroundColor: theme.card, borderColor: theme.border },
+                    { backgroundColor: TEEN.base, borderColor: TEEN.border },
                     done && styles.nodeDone,
                     isCurrent && { borderColor: TEAL }
                   ]}
@@ -230,7 +228,7 @@ export default function LearningPathScreen({ navigation }) {
                   <Text style={styles.nodeEmoji}>{done ? '✅' : unlocked ? lesson.emoji : '🔒'}</Text>
                 </TouchableOpacity>
               </PulsingNode>
-              <Text style={[styles.nodeLabel, { color: theme.text }, !unlocked && { color: theme.textSub }]} numberOfLines={2}>
+              <Text style={[styles.nodeLabel, { color: TEEN.text }, !unlocked && { color: TEEN.textSub }]} numberOfLines={2}>
                 {lesson.title}
               </Text>
             </Animated.View>
@@ -239,7 +237,7 @@ export default function LearningPathScreen({ navigation }) {
 
         {currentIndex !== -1 && (
           <Animated.View
-            entering={ZoomIn.delay(500).springify().damping(9)}
+            entering={ZoomIn.delay(500).duration(180).springify().damping(16)}
             style={[styles.mascotMarker, { left: centerX(currentIndex) - 20, top: centerY(currentIndex, LESSONS.length) - NODE_SIZE / 2 - 46 }]}
           >
             <BouncyMascot size={38} emoji="🏃" />
@@ -247,7 +245,7 @@ export default function LearningPathScreen({ navigation }) {
         )}
       </View>
 
-      <View style={[styles.footer, { backgroundColor: theme.card }]}>
+      <View style={[styles.footer, { backgroundColor: TEEN.base }]}>
         <Text style={styles.footerText}>
           {completed.length === LESSONS.length ? '🎉 Path complete! You\'re a preparedness pro.' : `${completed.length}/${LESSONS.length} lessons done`}
         </Text>
@@ -285,7 +283,7 @@ const styles = StyleSheet.create({
   connectorLine: { position: 'absolute', height: 4, borderRadius: 2, transformOrigin: 'left center' },
   nodeWrap: { position: 'absolute', width: LABEL_WIDTH, alignItems: 'center' },
   node: { width: NODE_SIZE, height: NODE_SIZE, borderRadius: NODE_SIZE / 2, alignItems: 'center', justifyContent: 'center', borderWidth: 4 },
-  nodeDone: { backgroundColor: TEAL, borderColor: '#38BDF8' },
+  nodeDone: { backgroundColor: TEAL, borderColor: TEEN.tealDeep },
   nodeEmoji: { fontSize: 32 },
   nodeLabel: { fontSize: TYPE.caption.fontSize + 1, fontWeight: 'bold', marginTop: SPACING.sm - 2, textAlign: 'center' },
   startBubble: { borderRadius: RADII.teen.chip, paddingVertical: 3, paddingHorizontal: 10, marginBottom: 6 },

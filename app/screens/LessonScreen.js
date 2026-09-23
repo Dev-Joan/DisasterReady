@@ -1,29 +1,34 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { View, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue, useAnimatedStyle, withSpring, withSequence, withTiming, withDelay,
   Easing, ZoomIn
 } from 'react-native-reanimated';
 import Text from '../components/Text';
+import LottieView from 'lottie-react-native';
 import { useAudioPlayer } from 'expo-audio';
 import * as Haptics from 'expo-haptics';
 import apiRequest from '../services/api';
 import { useUser } from '../context/UserContext';
-import { useTheme } from '../context/ThemeContext';
 import { useAccessibility, touchTargetProps } from '../context/AccessibilityContext';
 import { TEEN_LESSONS } from '../constants/lessonSchema';
 import { SPACING, TYPE, RADII, AGE_PALETTES, SEMANTIC } from '../constants/tokens';
 import AnimatedProgressBar from '../components/AnimatedProgressBar';
 import CountUpNumber from '../components/CountUpNumber';
 import Celebration from '../components/Celebration';
+import BadgeUnlockOverlay from '../components/BadgeUnlockOverlay';
+import useBadgeUnlock from '../hooks/useBadgeUnlock';
 
 const packSound = require('../assets/sounds/pack.wav');
 const wrongSound = require('../assets/sounds/wrong.wav');
 const winSound = require('../assets/sounds/win.wav');
+const celebrationStarSource = require('../assets/lottie/celebration-star.json');
 
-const TEAL = AGE_PALETTES.teen.teal;
-const INDIGO = AGE_PALETTES.teen.indigo;
-const CORAL = AGE_PALETTES.teen.coral;
+const TEEN = AGE_PALETTES.teen;
+const TEAL = TEEN.teal;
+const INDIGO = TEEN.indigo;
+const CORAL = TEEN.coral;
 const ERROR = SEMANTIC.critical;
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -35,6 +40,13 @@ function getMultiplier(streak) {
   if (streak >= 2) return 1.5;
   return 1;
 }
+
+// Correct/incorrect feedback fires on every single answer — a full
+// scale-0 ZoomIn read as a big attention-grabbing pop after the tenth
+// repetition. This keeps it quick and perceptible (still a real entrance,
+// not nothing) but subtle: a small scale bump over 120ms, no spring
+// overshoot. Shared by every correct/wrong/hazard-found highlight below.
+const answerFeedbackEntering = ZoomIn.duration(120).withInitialValues({ transform: [{ scale: 0.94 }] });
 
 function shuffle(arr) {
   const a = [...arr];
@@ -64,8 +76,8 @@ function XpFlyup({ amount, onDone }) {
 
 export default function LessonScreen({ route, navigation }) {
   const { userId } = useUser();
-  const { theme } = useTheme();
   const { settings: a11y } = useAccessibility();
+  const insets = useSafeAreaInsets();
   const { lessonId } = route.params;
   const lesson = TEEN_LESSONS.find(l => l.id === lessonId) || TEEN_LESSONS[0];
   const exercises = lesson.exercises;
@@ -88,6 +100,8 @@ export default function LessonScreen({ route, navigation }) {
   const [matchWrongFlash, setMatchWrongFlash] = useState(null);
   const [tapImageTried, setTapImageTried] = useState([]);
   const [orderSelected, setOrderSelected] = useState([]);
+  const [gamBadges, setGamBadges] = useState(null);
+  const { unlockedBadge, dismissBadgeUnlock } = useBadgeUnlock(gamBadges);
 
   const heartShakeX = useSharedValue(0);
   const feedbackY = useSharedValue(200);
@@ -240,7 +254,8 @@ export default function LessonScreen({ route, navigation }) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setPhase('done');
       try {
-        await apiRequest('/gamification/lesson-complete', 'POST', { userId, lessonId, xp: earnedXp || lesson.xp });
+        const result = await apiRequest('/gamification/lesson-complete', 'POST', { userId, lessonId, xp: earnedXp || lesson.xp });
+        setGamBadges(result.badges || []);
       } catch (err) {
         console.log('Lesson complete error:', err.message);
       }
@@ -295,7 +310,8 @@ export default function LessonScreen({ route, navigation }) {
   // ---- INTRO / TEACHING ----
   if (phase === 'intro') {
     return (
-      <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={styles.introBody}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: TEEN.slate }} edges={['top', 'bottom']}>
+      <ScrollView contentContainerStyle={styles.introBody}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={{ alignSelf: 'flex-start' }}
@@ -304,26 +320,26 @@ export default function LessonScreen({ route, navigation }) {
           accessibilityHint="Exits without starting the lesson"
           {...touchTargetProps(a11y)}
         >
-          <Text style={[styles.closeBtn, { color: theme.textSub }]}>✕</Text>
+          <Text style={[styles.closeBtn, { color: TEEN.textSub }]}>✕</Text>
         </TouchableOpacity>
         <Text style={styles.introEmoji}>{lesson.emoji}</Text>
-        <Text style={[styles.introTitle, { color: theme.text }]}>{lesson.title}</Text>
+        <Text style={[styles.introTitle, { color: TEEN.text }]}>{lesson.title}</Text>
 
-        <View style={[styles.introSection, { backgroundColor: theme.card, borderLeftColor: '#94A3B8' }]}>
-          <Text style={[styles.introLabel, { color: '#94A3B8' }]}>WHAT IT IS</Text>
-          <Text style={[styles.introText, { color: theme.text }]}>{lesson.intro.what}</Text>
+        <View style={[styles.introSection, { backgroundColor: TEEN.base, borderLeftColor: TEEN.textSub }]}>
+          <Text style={[styles.introLabel, { color: TEEN.textSub }]}>WHAT IT IS</Text>
+          <Text style={[styles.introText, { color: TEEN.text }]}>{lesson.intro.what}</Text>
         </View>
-        <View style={[styles.introSection, { backgroundColor: theme.card, borderLeftColor: TEAL }]}>
+        <View style={[styles.introSection, { backgroundColor: TEEN.base, borderLeftColor: TEAL }]}>
           <Text style={[styles.introLabel, { color: TEAL }]}>HOW TO PREPARE</Text>
-          <Text style={[styles.introText, { color: theme.text }]}>{lesson.intro.prepare}</Text>
+          <Text style={[styles.introText, { color: TEEN.text }]}>{lesson.intro.prepare}</Text>
         </View>
-        <View style={[styles.introSection, { backgroundColor: theme.card, borderLeftColor: INDIGO }]}>
+        <View style={[styles.introSection, { backgroundColor: TEEN.base, borderLeftColor: INDIGO }]}>
           <Text style={[styles.introLabel, { color: INDIGO }]}>HOW TO REACT</Text>
-          <Text style={[styles.introText, { color: theme.text }]}>{lesson.intro.react}</Text>
+          <Text style={[styles.introText, { color: TEEN.text }]}>{lesson.intro.react}</Text>
         </View>
-        <View style={[styles.introSection, { backgroundColor: theme.card, borderLeftColor: CORAL }]}>
+        <View style={[styles.introSection, { backgroundColor: TEEN.base, borderLeftColor: CORAL }]}>
           <Text style={[styles.introLabel, { color: CORAL }]}>PROTECT YOURSELF</Text>
-          <Text style={[styles.introText, { color: theme.text }]}>{lesson.intro.protect}</Text>
+          <Text style={[styles.introText, { color: TEEN.text }]}>{lesson.intro.protect}</Text>
         </View>
 
         <TouchableOpacity
@@ -336,6 +352,7 @@ export default function LessonScreen({ route, navigation }) {
           <Text style={styles.primaryBtnText}>START LESSON ▶</Text>
         </TouchableOpacity>
       </ScrollView>
+      </SafeAreaView>
     );
   }
 
@@ -343,32 +360,37 @@ export default function LessonScreen({ route, navigation }) {
   if (phase === 'done') {
     const accuracy = Math.round((correctCount / exercises.length) * 100);
     return (
-      <View style={[styles.completeScreen, { backgroundColor: theme.bg }]}>
+      <SafeAreaView style={[styles.completeScreen, { backgroundColor: TEEN.slate }]} edges={['top', 'bottom']}>
         <Celebration colors={[TEAL, INDIGO, CORAL, '#FBBF24']} />
-        <Text style={styles.completeEmoji}>⚡🎉</Text>
-        <Text style={[styles.completeTitle, { color: theme.text }]}>Lesson Complete!</Text>
+        <LottieView
+          source={celebrationStarSource}
+          autoPlay={!a11y.reducedMotion}
+          loop={!a11y.reducedMotion}
+          style={styles.completeLottie}
+        />
+        <Text style={[styles.completeTitle, { color: TEEN.text }]}>Lesson Complete!</Text>
         <View style={styles.statsRow}>
           <View style={styles.statBox}>
             <View style={{ flexDirection: 'row' }}>
               <Text style={[styles.statNum, { color: CORAL }]}>+</Text>
               <CountUpNumber value={earnedXp} style={[styles.statNum, { color: CORAL }]} />
             </View>
-            <Text style={[styles.statLabel, { color: theme.textSub }]}>XP</Text>
+            <Text style={[styles.statLabel, { color: TEEN.textSub }]}>XP</Text>
           </View>
           <View style={styles.statBox}>
             <CountUpNumber value={accuracy} suffix="%" style={[styles.statNum, { color: TEAL }]} />
-            <Text style={[styles.statLabel, { color: theme.textSub }]}>Accuracy</Text>
+            <Text style={[styles.statLabel, { color: TEEN.textSub }]}>Accuracy</Text>
           </View>
           <View style={styles.statBox}>
             <CountUpNumber value={hearts} style={[styles.statNum, { color: CORAL }]} />
-            <Text style={[styles.statLabel, { color: theme.textSub }]}>Hearts left</Text>
+            <Text style={[styles.statLabel, { color: TEEN.textSub }]}>Hearts left</Text>
           </View>
           <View style={styles.statBox}>
             <CountUpNumber value={bestStreak} style={[styles.statNum, { color: INDIGO }]} />
-            <Text style={[styles.statLabel, { color: theme.textSub }]}>Best streak</Text>
+            <Text style={[styles.statLabel, { color: TEEN.textSub }]}>Best streak</Text>
           </View>
         </View>
-        <Text style={[styles.completeSub, { color: theme.textSub }]}>The next lesson is now unlocked.</Text>
+        <Text style={[styles.completeSub, { color: TEEN.textSub }]}>The next lesson is now unlocked.</Text>
         <TouchableOpacity
           style={styles.primaryBtn}
           onPress={() => navigation.goBack()}
@@ -379,16 +401,17 @@ export default function LessonScreen({ route, navigation }) {
         >
           <Text style={styles.primaryBtnText}>CONTINUE</Text>
         </TouchableOpacity>
-      </View>
+        <BadgeUnlockOverlay badgeId={unlockedBadge} accent={TEAL} onDismiss={dismissBadgeUnlock} />
+      </SafeAreaView>
     );
   }
 
   if (phase === 'failed') {
     return (
-      <View style={[styles.completeScreen, { backgroundColor: theme.bg }]}>
+      <SafeAreaView style={[styles.completeScreen, { backgroundColor: TEEN.slate }]} edges={['top', 'bottom']}>
         <Text style={styles.completeEmoji}>💔</Text>
-        <Text style={[styles.completeTitle, { color: theme.text }]}>Out of hearts!</Text>
-        <Text style={[styles.completeSub, { color: theme.textSub }]}>No worries — review and try again. Repetition is how it sticks.</Text>
+        <Text style={[styles.completeTitle, { color: TEEN.text }]}>Out of hearts!</Text>
+        <Text style={[styles.completeSub, { color: TEEN.textSub }]}>No worries — review and try again. Repetition is how it sticks.</Text>
         <TouchableOpacity
           style={styles.primaryBtn}
           onPress={retryLesson}
@@ -406,17 +429,17 @@ export default function LessonScreen({ route, navigation }) {
           accessibilityLabel="Back to path"
           {...touchTargetProps(a11y)}
         >
-          <Text style={[styles.secondaryBtnText, { color: theme.textSub }]}>Back to Path</Text>
+          <Text style={[styles.secondaryBtnText, { color: TEEN.textSub }]}>Back to Path</Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
   // ---- PLAYING ----
   return (
-    <View style={[styles.screen, { backgroundColor: theme.bg }]}>
+    <View style={[styles.screen, { backgroundColor: TEEN.slate }]}>
       {/* Header: progress + hearts + XP + combo */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View style={styles.headerTopRow}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
@@ -425,16 +448,16 @@ export default function LessonScreen({ route, navigation }) {
             accessibilityHint="Exits the lesson without finishing it"
             {...touchTargetProps(a11y)}
           >
-            <Text style={[styles.closeBtn, { color: theme.textSub }]}>✕</Text>
+            <Text style={[styles.closeBtn, { color: TEEN.textSub }]}>✕</Text>
           </TouchableOpacity>
           <View style={styles.progressTrack}>
-            <AnimatedProgressBar progress={progress} trackColor={theme.border} fillColor={TEAL} height={14} />
+            <AnimatedProgressBar progress={progress} trackColor={TEEN.border} fillColor={TEAL} height={14} />
           </View>
           <Animated.View style={[styles.heartsBox, heartRowStyle]}>
             {Array.from({ length: MAX_HEARTS }).map((_, i) => (
               <Animated.Text
                 key={`${i}-${i < hearts}`}
-                entering={i < hearts ? undefined : ZoomIn.duration(300)}
+                entering={i < hearts ? undefined : answerFeedbackEntering}
                 style={styles.heartIcon}
               >
                 {i < hearts ? '❤️' : '🖤'}
@@ -448,7 +471,7 @@ export default function LessonScreen({ route, navigation }) {
             <CountUpNumber value={earnedXp} suffix=" XP" duration={500} style={styles.xpPillText} />
           </View>
           {streak >= 2 && (
-            <Animated.View key={streak} entering={ZoomIn.springify().damping(8)} style={styles.comboBadge}>
+            <Animated.View key={streak} entering={ZoomIn.duration(160).springify().damping(16)} style={styles.comboBadge}>
               <Text style={styles.comboText}>🔥 {streak}x STREAK</Text>
             </Animated.View>
           )}
@@ -457,18 +480,18 @@ export default function LessonScreen({ route, navigation }) {
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>
-        <Text style={[styles.prompt, { color: theme.text }]}>{ex.prompt}</Text>
+        <Text style={[styles.prompt, { color: TEEN.text }]}>{ex.prompt}</Text>
 
         {/* SELECT */}
         {ex.type === 'select' && ex.options.map((opt, i) => {
           const isCorrectOpt = checked && i === ex.correct;
           const isWrongOpt = checked && i === selected && i !== ex.correct;
-          let optStyle = [styles.option, { backgroundColor: theme.card, borderColor: theme.border }];
+          let optStyle = [styles.option, { backgroundColor: TEEN.base, borderColor: TEEN.border }];
           if (isCorrectOpt) optStyle.push(styles.optionCorrect);
           else if (isWrongOpt) optStyle.push(styles.optionWrong);
           else if (selected === i) optStyle.push(styles.optionSelected);
           return (
-            <Animated.View key={`${i}-${checked}`} entering={(isCorrectOpt || isWrongOpt) ? ZoomIn.duration(220) : undefined}>
+            <Animated.View key={`${i}-${checked}`} entering={(isCorrectOpt || isWrongOpt) ? answerFeedbackEntering : undefined}>
               <TouchableOpacity
                 style={optStyle}
                 disabled={checked}
@@ -478,7 +501,7 @@ export default function LessonScreen({ route, navigation }) {
                 accessibilityState={{ selected: selected === i, disabled: checked }}
                 {...touchTargetProps(a11y)}
               >
-                <Text style={[styles.optionText, { color: theme.text }]}>{opt}</Text>
+                <Text style={[styles.optionText, { color: TEEN.text }]}>{opt}</Text>
               </TouchableOpacity>
             </Animated.View>
           );
@@ -489,12 +512,12 @@ export default function LessonScreen({ route, navigation }) {
           const isSel = selected === val;
           const isCorrectOpt = checked && val === ex.correct;
           const isWrongOpt = checked && isSel && val !== ex.correct;
-          let optStyle = [styles.option, { backgroundColor: theme.card, borderColor: theme.border }];
+          let optStyle = [styles.option, { backgroundColor: TEEN.base, borderColor: TEEN.border }];
           if (isCorrectOpt) optStyle.push(styles.optionCorrect);
           else if (isWrongOpt) optStyle.push(styles.optionWrong);
           else if (isSel) optStyle.push(styles.optionSelected);
           return (
-            <Animated.View key={`${i}-${checked}`} entering={(isCorrectOpt || isWrongOpt) ? ZoomIn.duration(220) : undefined}>
+            <Animated.View key={`${i}-${checked}`} entering={(isCorrectOpt || isWrongOpt) ? answerFeedbackEntering : undefined}>
               <TouchableOpacity
                 style={optStyle}
                 disabled={checked}
@@ -504,7 +527,7 @@ export default function LessonScreen({ route, navigation }) {
                 accessibilityState={{ selected: isSel, disabled: checked }}
                 {...touchTargetProps(a11y)}
               >
-                <Text style={[styles.optionText, { color: theme.text }]}>{val ? '✅ True' : '❌ False'}</Text>
+                <Text style={[styles.optionText, { color: TEEN.text }]}>{val ? '✅ True' : '❌ False'}</Text>
               </TouchableOpacity>
             </Animated.View>
           );
@@ -513,8 +536,8 @@ export default function LessonScreen({ route, navigation }) {
         {/* WORD BANK */}
         {ex.type === 'wordbank' && (
           <>
-            <View style={[styles.answerLine, { borderColor: theme.border }]}>
-              {bankSelected.length === 0 && <Text style={[styles.answerPlaceholder, { color: theme.textSub }]}>Tap words to build your answer...</Text>}
+            <View style={[styles.answerLine, { borderColor: TEEN.border }]}>
+              {bankSelected.length === 0 && <Text style={[styles.answerPlaceholder, { color: TEEN.textSub }]}>Tap words to build your answer...</Text>}
               {bankSelected.map((w, i) => (
                 <Animated.View key={`${w}-${i}`} entering={ZoomIn.duration(200).springify().damping(12)}>
                   <TouchableOpacity
@@ -534,14 +557,14 @@ export default function LessonScreen({ route, navigation }) {
               {availableBank().map((w, i) => (
                 <TouchableOpacity
                   key={i}
-                  style={[styles.chip, { backgroundColor: theme.card, borderColor: theme.border }]}
+                  style={[styles.chip, { backgroundColor: TEEN.base, borderColor: TEEN.border }]}
                   onPress={() => tapBankWord(w, false, i)}
                   accessibilityRole="button"
                   accessibilityLabel={w}
                   accessibilityHint="Adds this word to your answer"
                   {...touchTargetProps(a11y)}
                 >
-                  <Text style={[styles.chipText, { color: theme.text }]}>{w}</Text>
+                  <Text style={[styles.chipText, { color: TEEN.text }]}>{w}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -562,7 +585,7 @@ export default function LessonScreen({ route, navigation }) {
                     disabled={isMatched}
                     onPress={() => tapMatchLeft(p.id)}
                     style={[
-                      styles.matchItem, { backgroundColor: theme.card, borderColor: theme.border },
+                      styles.matchItem, { backgroundColor: TEEN.base, borderColor: TEEN.border },
                       isSelected && styles.matchItemSelected,
                       isMatched && styles.matchItemMatched,
                       isWrongFlash && styles.matchItemWrong
@@ -573,7 +596,7 @@ export default function LessonScreen({ route, navigation }) {
                     accessibilityState={{ selected: isSelected, disabled: isMatched }}
                     {...touchTargetProps(a11y)}
                   >
-                    <Text style={[styles.matchItemText, { color: theme.text }, isMatched && styles.matchItemTextMatched]}>{p.left}</Text>
+                    <Text style={[styles.matchItemText, { color: TEEN.text }, isMatched && styles.matchItemTextMatched]}>{p.left}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -588,7 +611,7 @@ export default function LessonScreen({ route, navigation }) {
                     disabled={isMatched}
                     onPress={() => tapMatchRight(r.id)}
                     style={[
-                      styles.matchItem, { backgroundColor: theme.card, borderColor: theme.border },
+                      styles.matchItem, { backgroundColor: TEEN.base, borderColor: TEEN.border },
                       isMatched && styles.matchItemMatched,
                       isWrongFlash && styles.matchItemWrong
                     ]}
@@ -598,7 +621,7 @@ export default function LessonScreen({ route, navigation }) {
                     accessibilityState={{ disabled: isMatched }}
                     {...touchTargetProps(a11y)}
                   >
-                    <Text style={[styles.matchItemText, { color: theme.text }, isMatched && styles.matchItemTextMatched]}>{r.text}</Text>
+                    <Text style={[styles.matchItemText, { color: TEEN.text }, isMatched && styles.matchItemTextMatched]}>{r.text}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -608,7 +631,7 @@ export default function LessonScreen({ route, navigation }) {
 
         {/* TAP THE HAZARDS */}
         {ex.type === 'tapimage' && (
-          <View style={[styles.tapScene, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <View style={[styles.tapScene, { backgroundColor: TEEN.base, borderColor: TEEN.border }]}>
             {ex.items.map((item) => {
               const tried = tapImageTried.includes(item.id);
               const isFound = tried && item.hazard;
@@ -633,7 +656,7 @@ export default function LessonScreen({ route, navigation }) {
                 >
                   <Animated.Text
                     key={`${item.id}-${tried}`}
-                    entering={tried ? ZoomIn.duration(220) : undefined}
+                    entering={tried ? answerFeedbackEntering : undefined}
                     style={[styles.tapItemEmoji, tried && { opacity: 0.45 }]}
                   >
                     {item.emoji}
@@ -650,11 +673,11 @@ export default function LessonScreen({ route, navigation }) {
         {ex.type === 'order' && (
           <>
             <View style={styles.orderSlots}>
-              {orderSelected.length === 0 && <Text style={[styles.answerPlaceholder, { color: theme.textSub }]}>Tap steps below in the right order...</Text>}
+              {orderSelected.length === 0 && <Text style={[styles.answerPlaceholder, { color: TEEN.textSub }]}>Tap steps below in the right order...</Text>}
               {orderSelected.map((s, i) => (
                 <Animated.View key={`${s}-${i}`} entering={ZoomIn.duration(200).springify().damping(12)}>
                   <TouchableOpacity
-                    style={[styles.orderSlotRow, { backgroundColor: theme.card, borderColor: TEAL }]}
+                    style={[styles.orderSlotRow, { backgroundColor: TEEN.base, borderColor: TEAL }]}
                     onPress={() => tapOrderStep(s, true, i)}
                     accessibilityRole="button"
                     accessibilityLabel={`Step ${i + 1}: ${s}`}
@@ -662,7 +685,7 @@ export default function LessonScreen({ route, navigation }) {
                     {...touchTargetProps(a11y)}
                   >
                     <Text style={styles.orderSlotNumber}>{i + 1}</Text>
-                    <Text style={[styles.orderSlotText, { color: theme.text }]}>{s}</Text>
+                    <Text style={[styles.orderSlotText, { color: TEEN.text }]}>{s}</Text>
                   </TouchableOpacity>
                 </Animated.View>
               ))}
@@ -671,14 +694,14 @@ export default function LessonScreen({ route, navigation }) {
               {availableOrderSteps().map((s, i) => (
                 <TouchableOpacity
                   key={i}
-                  style={[styles.chip, { backgroundColor: theme.card, borderColor: theme.border }]}
+                  style={[styles.chip, { backgroundColor: TEEN.base, borderColor: TEEN.border }]}
                   onPress={() => tapOrderStep(s, false, i)}
                   accessibilityRole="button"
                   accessibilityLabel={s}
                   accessibilityHint="Adds this as the next step in your order"
                   {...touchTargetProps(a11y)}
                 >
-                  <Text style={[styles.chipText, { color: theme.text }]}>{s}</Text>
+                  <Text style={[styles.chipText, { color: TEEN.text }]}>{s}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -688,10 +711,10 @@ export default function LessonScreen({ route, navigation }) {
         {/* FILL IN THE BLANK */}
         {ex.type === 'fillblank' && (
           <>
-            <View style={[styles.fillSentenceBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
-              <Text style={[styles.fillSentenceText, { color: theme.text }]}>
+            <View style={[styles.fillSentenceBox, { backgroundColor: TEEN.base, borderColor: TEEN.border }]}>
+              <Text style={[styles.fillSentenceText, { color: TEEN.text }]}>
                 {ex.template.split('{blank}')[0]}
-                <Text style={[styles.fillBlankSlot, { color: selected !== null ? TEAL : theme.textSub, borderBottomColor: selected !== null ? TEAL : theme.textSub }]}>
+                <Text style={[styles.fillBlankSlot, { color: selected !== null ? TEAL : TEEN.textSub, borderBottomColor: selected !== null ? TEAL : TEEN.textSub }]}>
                   {selected !== null ? ex.blankOptions[selected] : '_______'}
                 </Text>
                 {ex.template.split('{blank}')[1]}
@@ -700,12 +723,12 @@ export default function LessonScreen({ route, navigation }) {
             {ex.blankOptions.map((opt, i) => {
               const isCorrectOpt = checked && i === ex.correct;
               const isWrongOpt = checked && i === selected && i !== ex.correct;
-              let optStyle = [styles.option, { backgroundColor: theme.card, borderColor: theme.border }];
+              let optStyle = [styles.option, { backgroundColor: TEEN.base, borderColor: TEEN.border }];
               if (isCorrectOpt) optStyle.push(styles.optionCorrect);
               else if (isWrongOpt) optStyle.push(styles.optionWrong);
               else if (selected === i) optStyle.push(styles.optionSelected);
               return (
-                <Animated.View key={`${i}-${checked}`} entering={(isCorrectOpt || isWrongOpt) ? ZoomIn.duration(220) : undefined}>
+                <Animated.View key={`${i}-${checked}`} entering={(isCorrectOpt || isWrongOpt) ? answerFeedbackEntering : undefined}>
                   <TouchableOpacity
                     style={optStyle}
                     disabled={checked}
@@ -715,7 +738,7 @@ export default function LessonScreen({ route, navigation }) {
                     accessibilityState={{ selected: selected === i, disabled: checked }}
                     {...touchTargetProps(a11y)}
                   >
-                    <Text style={[styles.optionText, { color: theme.text }]}>{opt}</Text>
+                    <Text style={[styles.optionText, { color: TEEN.text }]}>{opt}</Text>
                   </TouchableOpacity>
                 </Animated.View>
               );
@@ -726,7 +749,7 @@ export default function LessonScreen({ route, navigation }) {
 
       {/* Feedback bar */}
       {checked && (
-        <Animated.View style={[styles.feedbackBar, wasCorrect ? styles.feedbackGood : styles.feedbackBad, feedbackStyle]}>
+        <Animated.View style={[styles.feedbackBar, wasCorrect ? styles.feedbackGood : styles.feedbackBad, { paddingBottom: SPACING.xxl + 4 + insets.bottom }, feedbackStyle]}>
           <Text style={styles.feedbackTitle}>{wasCorrect ? '✅ Correct!' : '❌ Not quite'}</Text>
           {!wasCorrect && ex.explain && <Text style={styles.feedbackText}>{ex.explain}</Text>}
           {!wasCorrect && ex.type === 'wordbank' && <Text style={styles.feedbackText}>Answer: {ex.answer.join(' ')}</Text>}
@@ -747,9 +770,9 @@ export default function LessonScreen({ route, navigation }) {
 
       {/* Check button — match and tapimage resolve themselves, no explicit check needed */}
       {!checked && ex.type !== 'match' && ex.type !== 'tapimage' && (
-        <View style={[styles.checkBar, { backgroundColor: theme.bg, borderColor: theme.border }]}>
+        <View style={[styles.checkBar, { backgroundColor: TEEN.slate, borderColor: TEEN.border, paddingBottom: SPACING.lg + insets.bottom }]}>
           <TouchableOpacity
-            style={[styles.checkBtn, !isAnswerReady() && [styles.checkBtnDisabled, { backgroundColor: theme.border, borderColor: theme.border }]]}
+            style={[styles.checkBtn, !isAnswerReady() && [styles.checkBtnDisabled, { backgroundColor: TEEN.border, borderColor: TEEN.border }]]}
             disabled={!isAnswerReady()}
             onPress={check}
             accessibilityRole="button"
@@ -793,8 +816,8 @@ const styles = StyleSheet.create({
   introText: { fontSize: TYPE.body.fontSize, lineHeight: 22 },
 
   option: { borderRadius: RADII.teen.card, borderWidth: 2, borderBottomWidth: 5, padding: SPACING.lg, marginBottom: SPACING.md },
-  optionSelected: { borderColor: TEAL, backgroundColor: '#12344a' },
-  optionCorrect: { borderColor: TEAL, backgroundColor: '#0c4a6e' },
+  optionSelected: { borderColor: TEAL, backgroundColor: '#123F3A' },
+  optionCorrect: { borderColor: TEAL, backgroundColor: '#0F4A42' },
   optionWrong: { borderColor: ERROR, backgroundColor: '#4a1616' },
   optionText: { fontSize: TYPE.body.fontSize + 1, fontWeight: '600' },
 
@@ -802,14 +825,14 @@ const styles = StyleSheet.create({
   answerPlaceholder: { fontStyle: 'italic', alignSelf: 'center' },
   bankPool: { flexDirection: 'row', flexWrap: 'wrap' },
   chip: { borderRadius: RADII.teen.chip, borderWidth: 2, borderBottomWidth: 4, paddingVertical: SPACING.sm + 2, paddingHorizontal: SPACING.md + 2, marginRight: SPACING.sm, marginBottom: SPACING.sm },
-  chipSelected: { backgroundColor: '#12344a', borderRadius: RADII.teen.chip, borderWidth: 2, borderColor: TEAL, paddingVertical: SPACING.sm, paddingHorizontal: SPACING.md, marginRight: SPACING.sm - 2, marginBottom: SPACING.sm - 2 },
+  chipSelected: { backgroundColor: '#123F3A', borderRadius: RADII.teen.chip, borderWidth: 2, borderColor: TEAL, paddingVertical: SPACING.sm, paddingHorizontal: SPACING.md, marginRight: SPACING.sm - 2, marginBottom: SPACING.sm - 2 },
   chipText: { fontSize: TYPE.body.fontSize, fontWeight: '600' },
   chipTextSelected: { color: '#F8FAFC', fontSize: TYPE.body.fontSize, fontWeight: '600' },
 
   matchRow: { flexDirection: 'row', justifyContent: 'space-between' },
   matchCol: { flex: 1, marginHorizontal: SPACING.xs },
   matchItem: { borderRadius: RADII.teen.card - 2, borderWidth: 2, padding: SPACING.md, marginBottom: SPACING.sm + 2, minHeight: 64, justifyContent: 'center' },
-  matchItemSelected: { borderColor: TEAL, backgroundColor: '#12344a' },
+  matchItemSelected: { borderColor: TEAL, backgroundColor: '#123F3A' },
   matchItemMatched: { borderColor: '#34D399', backgroundColor: 'rgba(52,211,153,0.12)', opacity: 0.6 },
   matchItemWrong: { borderColor: ERROR, backgroundColor: '#4a1616' },
   matchItemText: { fontSize: TYPE.body.fontSize - 1, fontWeight: '600' },
@@ -830,13 +853,13 @@ const styles = StyleSheet.create({
   fillBlankSlot: { fontWeight: 'bold', borderBottomWidth: 2, paddingHorizontal: 4 },
 
   checkBar: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: SPACING.lg, borderTopWidth: 1 },
-  checkBtn: { backgroundColor: TEAL, borderRadius: RADII.teen.card, borderBottomWidth: 4, borderColor: '#0784b8', padding: SPACING.lg, alignItems: 'center' },
+  checkBtn: { backgroundColor: TEAL, borderRadius: RADII.teen.card, borderBottomWidth: 4, borderColor: TEEN.tealDeep, padding: SPACING.lg, alignItems: 'center' },
   checkBtnDisabled: {},
   checkBtnText: { color: '#fff', fontWeight: 'bold', fontSize: TYPE.body.fontSize + 1, letterSpacing: 1 },
 
   // Bottom sheet — a distinct surface type from cards, kept at its own larger radius.
   feedbackBar: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: SPACING.xl, paddingBottom: SPACING.xxl + 4, borderTopLeftRadius: 20, borderTopRightRadius: 20 },
-  feedbackGood: { backgroundColor: '#0c4a6e' },
+  feedbackGood: { backgroundColor: '#0F4A42' },
   feedbackBad: { backgroundColor: '#4a1616' },
   feedbackTitle: { color: '#fff', fontSize: TYPE.title.fontSize - 2, fontWeight: 'bold', marginBottom: SPACING.sm - 2 },
   feedbackText: { color: '#E2E8F0', fontSize: TYPE.body.fontSize - 1, marginBottom: SPACING.md, lineHeight: 20 },
@@ -845,6 +868,7 @@ const styles = StyleSheet.create({
 
   completeScreen: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: SPACING.xxl + 4 },
   completeEmoji: { fontSize: 60, marginBottom: SPACING.md },
+  completeLottie: { width: 140, height: 140, marginBottom: SPACING.sm },
   completeTitle: { fontSize: TYPE.display.fontSize, fontWeight: 'bold', marginBottom: SPACING.xxl, textAlign: 'center' },
   statsRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginBottom: SPACING.xxl },
   statBox: { alignItems: 'center', marginHorizontal: SPACING.md, marginBottom: SPACING.md, minWidth: 70 },
@@ -852,7 +876,7 @@ const styles = StyleSheet.create({
   statNum: { fontSize: TYPE.display.fontSize - 4, fontWeight: 'bold' },
   statLabel: { fontSize: TYPE.caption.fontSize, marginTop: SPACING.xs },
   completeSub: { fontSize: TYPE.body.fontSize, textAlign: 'center', marginBottom: SPACING.xxl + 4, lineHeight: 22 },
-  primaryBtn: { backgroundColor: TEAL, borderRadius: RADII.teen.card, borderBottomWidth: 4, borderColor: '#0784b8', paddingVertical: SPACING.lg, paddingHorizontal: 48 },
+  primaryBtn: { backgroundColor: TEAL, borderRadius: RADII.teen.card, borderBottomWidth: 4, borderColor: TEEN.tealDeep, paddingVertical: SPACING.lg, paddingHorizontal: 48 },
   primaryBtnText: { color: '#fff', fontWeight: 'bold', fontSize: TYPE.body.fontSize + 1, letterSpacing: 1 },
   secondaryBtn: { marginTop: SPACING.md + 2 },
   secondaryBtnText: { fontWeight: 'bold', fontSize: TYPE.body.fontSize }

@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useCallback, useEffect } from 'react';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import Text from '../components/Text';
 import { useFocusEffect } from '@react-navigation/native';
-import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+import * as Speech from 'expo-speech';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
@@ -12,12 +12,20 @@ import AnimatedProgressBar from '../components/AnimatedProgressBar';
 import { AUDIO_EPISODES as EPISODES, getEpisodeById } from '../constants/audio';
 import { SPACING, TYPE, TYPE_SENIOR, RADII, SEMANTIC } from '../constants/tokens';
 
-function formatTime(seconds) {
-  if (!seconds || isNaN(seconds) || seconds < 0) return '0:00';
-  const m = Math.floor(seconds / 60);
-  const s = Math.floor(seconds % 60);
-  return `${m}:${s < 10 ? '0' : ''}${s}`;
-}
+// "Listen & Learn" reads the real guide text out loud with on-device
+// text-to-speech (expo-speech) — there is no audio file anywhere in this
+// screen. The episode's `transcript` field (already real, hand-written
+// guide text — see constants/audio.js) IS the content; TTS just narrates
+// it, so there's nothing to keep in sync between "what plays" and "what
+// the transcript says" the way a separate recorded voiceover would need.
+//
+// expo-speech's pause()/resume() are iOS/web only (not Android — see the
+// package's own d.ts), so the play/pause toggle degrades to play/stop on
+// Android rather than silently pretending to pause. A separate, always-
+// present Stop button works identically on every platform.
+const NORMAL_RATE = 0.92;
+const SENIOR_RATE = 0.68;
+const IS_ANDROID = Platform.OS === 'android';
 
 export default function AudioPlayerScreen({ route }) {
   const { theme } = useTheme();
@@ -26,11 +34,13 @@ export default function AudioPlayerScreen({ route }) {
   const [isSenior, setIsSenior] = useState(false);
   const preselected = route?.params?.episodeId ? getEpisodeById(route.params.episodeId) : null;
   const [selected, setSelected] = useState(preselected || EPISODES[0]);
-  const player = useAudioPlayer(selected.file);
-  const status = useAudioPlayerStatus(player);
 
-  const [playing, setPlaying] = useState(false);
-  const [transcriptOpen, setTranscriptOpen] = useState(a11y.captionsPreferred);
+  const [status, setStatus] = useState('idle'); // idle | speaking | paused
+  const [wordRange, setWordRange] = useState(null); // { charIndex, charLength } from the last onBoundary
+  // Defaults open for everyone now — with TTS, seeing the words as they're
+  // read is the read-along experience, not just an accessibility extra.
+  // Still toggleable for anyone who just wants audio.
+  const [transcriptOpen, setTranscriptOpen] = useState(true);
 
   useFocusEffect(
     useCallback(() => {
@@ -38,55 +48,103 @@ export default function AudioPlayerScreen({ route }) {
       apiRequest(`/onboarding/profile?userId=${userId}`, 'GET')
         .then((profile) => { if (active) setIsSenior(profile.experienceMode === 'elderly'); })
         .catch(() => {});
-      return () => { active = false; };
+      // Leaving the screen (or losing focus) always stops speech — nothing
+      // should keep narrating in the background once you've navigated away.
+      return () => { active = false; Speech.stop(); };
     }, [userId])
   );
 
   useEffect(() => {
-    setPlaying(false);
-    player.pause();
-    player.seekTo(0);
+    Speech.stop();
+    setStatus('idle');
+    setWordRange(null);
   }, [selected]);
 
-  useEffect(() => {
-    setTranscriptOpen(a11y.captionsPreferred || isSenior);
-  }, [a11y.captionsPreferred, isSenior, selected]);
+  const speak = () => {
+    Speech.stop();
+    Speech.speak(selected.transcript, {
+      rate: isSenior ? SENIOR_RATE : NORMAL_RATE,
+      pitch: 1.0,
+      onStart: () => setStatus('speaking'),
+      onDone: () => { setStatus('idle'); setWordRange(null); },
+      onStopped: () => { setStatus('idle'); setWordRange(null); },
+      onError: () => { setStatus('idle'); setWordRange(null); },
+      onBoundary: (e) => setWordRange({ charIndex: e.charIndex, charLength: e.charLength })
+    });
+  };
 
   const togglePlay = () => {
-    if (playing) {
-      player.pause();
-      setPlaying(false);
-    } else {
-      player.play();
-      setPlaying(true);
+    if (status === 'speaking') {
+      if (IS_ANDROID) {
+        Speech.stop();
+        setStatus('idle');
+        setWordRange(null);
+      } else {
+        Speech.pause();
+        setStatus('paused');
+      }
+      return;
     }
+    if (status === 'paused' && !IS_ANDROID) {
+      Speech.resume();
+      setStatus('speaking');
+      return;
+    }
+    speak();
+  };
+
+  const stop = () => {
+    Speech.stop();
+    setStatus('idle');
+    setWordRange(null);
   };
 
   const restart = () => {
-    player.seekTo(0);
-    player.play();
-    setPlaying(true);
+    speak();
   };
 
   const type = isSenior ? TYPE_SENIOR : TYPE;
-  const progressPct = status.duration ? Math.min(100, (status.currentTime / status.duration) * 100) : 0;
+  const progressPct = wordRange && selected.transcript.length
+    ? Math.min(100, ((wordRange.charIndex + wordRange.charLength) / selected.transcript.length) * 100)
+    : 0;
+
+  const playPauseGlyph = status === 'speaking' ? (IS_ANDROID ? '⏹' : '⏸') : '▶';
+  const playPauseLabel = status === 'speaking' ? (IS_ANDROID ? 'Stop' : 'Pause') : (status === 'paused' ? 'Resume' : 'Play');
+
+  // Splits the transcript into read/current-word/unread so the current
+  // word can be highlighted as it's spoken — a "read along" effect that a
+  // static transcript toggle alone doesn't give you.
+  const renderTranscript = () => {
+    const text = selected.transcript;
+    if (!wordRange || status === 'idle') {
+      return <Text style={[styles.transcriptText, { color: theme.text, fontSize: type.body.fontSize - (isSenior ? -4 : 1), lineHeight: isSenior ? 32 : 22 }]}>{text}</Text>;
+    }
+    const { charIndex, charLength } = wordRange;
+    const before = text.slice(0, charIndex);
+    const current = text.slice(charIndex, charIndex + charLength);
+    const after = text.slice(charIndex + charLength);
+    const baseStyle = { fontSize: type.body.fontSize - (isSenior ? -4 : 1), lineHeight: isSenior ? 32 : 22 };
+    return (
+      <Text style={[styles.transcriptText, baseStyle, { color: theme.text }]}>
+        <Text style={{ color: theme.textSub }}>{before}</Text>
+        <Text style={[styles.currentWord, { backgroundColor: SEMANTIC.success + '33', color: theme.text }]}>{current}</Text>
+        <Text style={{ color: theme.text }}>{after}</Text>
+      </Text>
+    );
+  };
 
   return (
     <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={isSenior ? styles.containerSenior : styles.container}>
       <Text style={[styles.title, { color: theme.text, fontSize: type.display.fontSize - 2 }]}>🎧 Listen & Learn</Text>
-      <Text style={[styles.sub, { color: theme.textSub, fontSize: type.body.fontSize - (isSenior ? 0 : 1) }]}>Audio guides you can listen to anytime.</Text>
+      <Text style={[styles.sub, { color: theme.textSub, fontSize: type.body.fontSize - (isSenior ? 0 : 1) }]}>Guides read aloud — no recordings, spoken live on this device.</Text>
 
       <View style={[styles.nowPlaying, isSenior && styles.nowPlayingSenior, { backgroundColor: theme.card, borderColor: theme.border }]}>
-        <Text style={[styles.npLabel, { color: theme.textSub, fontSize: type.caption.fontSize }]}>NOW PLAYING</Text>
+        <Text style={[styles.npLabel, { color: theme.textSub, fontSize: type.caption.fontSize }]}>{status === 'speaking' ? 'READING NOW' : status === 'paused' ? 'PAUSED' : 'READY'}</Text>
         <Text style={[styles.npTitle, { color: theme.text, fontSize: type.title.fontSize + (isSenior ? 2 : 0) }]}>{selected.title}</Text>
         {!isSenior && <Text style={[styles.npDesc, { color: theme.textSub, fontSize: type.body.fontSize - 1 }]}>{selected.desc}</Text>}
 
         <View style={styles.progressWrap}>
           <AnimatedProgressBar progress={progressPct} trackColor={theme.border} fillColor={SEMANTIC.success} height={isSenior ? 14 : 8} />
-          <View style={styles.timeRow}>
-            <Text style={[styles.timeText, { color: theme.textSub, fontSize: type.caption.fontSize - (isSenior ? 0 : 1) }]}>{formatTime(status.currentTime)}</Text>
-            <Text style={[styles.timeText, { color: theme.textSub, fontSize: type.caption.fontSize - (isSenior ? 0 : 1) }]}>{formatTime(status.duration)}</Text>
-          </View>
         </View>
 
         <View style={styles.controls}>
@@ -94,7 +152,7 @@ export default function AudioPlayerScreen({ route }) {
             style={[styles.ctrlSmall, isSenior && styles.ctrlSmallSenior]}
             onPress={restart}
             accessibilityRole="button"
-            accessibilityLabel="Restart episode"
+            accessibilityLabel="Restart from the beginning"
             {...touchTargetProps(a11y)}
           >
             <Text style={[styles.ctrlSmallText, isSenior && { fontSize: 36 }]}>⏮</Text>
@@ -103,12 +161,21 @@ export default function AudioPlayerScreen({ route }) {
             style={[styles.ctrlBig, isSenior && styles.ctrlBigSenior]}
             onPress={togglePlay}
             accessibilityRole="button"
-            accessibilityLabel={playing ? 'Pause' : 'Play'}
+            accessibilityLabel={playPauseLabel}
             {...touchTargetProps(a11y)}
           >
-            <Text style={[styles.ctrlBigText, isSenior && { fontSize: 46 }]}>{playing ? '⏸' : '▶'}</Text>
+            <Text style={[styles.ctrlBigText, isSenior && { fontSize: 46 }]}>{playPauseGlyph}</Text>
           </TouchableOpacity>
-          <View style={[styles.ctrlSmall, isSenior && styles.ctrlSmallSenior]} />
+          <TouchableOpacity
+            style={[styles.ctrlSmall, isSenior && styles.ctrlSmallSenior]}
+            onPress={stop}
+            disabled={status === 'idle'}
+            accessibilityRole="button"
+            accessibilityLabel="Stop reading"
+            {...touchTargetProps(a11y)}
+          >
+            <Text style={[styles.ctrlSmallText, isSenior && { fontSize: 36 }, status === 'idle' && styles.ctrlDisabled]}>⏹</Text>
+          </TouchableOpacity>
         </View>
 
         <TouchableOpacity
@@ -125,7 +192,7 @@ export default function AudioPlayerScreen({ route }) {
 
         {transcriptOpen && (
           <Animated.View entering={FadeIn.duration(isSenior ? 340 : 200)} style={[styles.transcriptBox, { backgroundColor: theme.bg, borderColor: theme.border }]}>
-            <Text style={[styles.transcriptText, { color: theme.text, fontSize: type.body.fontSize - (isSenior ? -4 : 1), lineHeight: isSenior ? 32 : 22 }]}>{selected.transcript}</Text>
+            {renderTranscript()}
           </Animated.View>
         )}
       </View>
@@ -141,7 +208,7 @@ export default function AudioPlayerScreen({ route }) {
             accessibilityState={{ selected: selected.id === ep.id }}
             {...touchTargetProps(a11y)}
           >
-            <Text style={[styles.epIcon, isSenior && { fontSize: 34 }]}>{selected.id === ep.id && playing ? '🔊' : '🎵'}</Text>
+            <Text style={[styles.epIcon, isSenior && { fontSize: 34 }]}>{selected.id === ep.id && status === 'speaking' ? '🔊' : '🎵'}</Text>
             <View style={{ flex: 1 }}>
               <Text style={[styles.epTitle, { color: theme.text, fontSize: type.body.fontSize + 1 }]}>{ep.title}</Text>
               <Text style={[styles.epSource, { color: theme.textSub, fontSize: type.caption.fontSize }]}>{ep.source}</Text>
@@ -165,13 +232,12 @@ const styles = StyleSheet.create({
   npDesc: { marginTop: SPACING.sm, textAlign: 'center', lineHeight: 20 },
 
   progressWrap: { width: '100%', marginTop: SPACING.xl },
-  timeRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: SPACING.xs + 2 },
-  timeText: { fontWeight: 'bold' },
 
   controls: { flexDirection: 'row', alignItems: 'center', marginTop: SPACING.lg },
   ctrlSmall: { width: 60, height: 60, alignItems: 'center', justifyContent: 'center' },
   ctrlSmallSenior: { width: 76, height: 76 },
   ctrlSmallText: { fontSize: 30 },
+  ctrlDisabled: { opacity: 0.3 },
   ctrlBig: { width: 84, height: 84, borderRadius: 42, backgroundColor: SEMANTIC.success, alignItems: 'center', justifyContent: 'center', marginHorizontal: SPACING.lg },
   ctrlBigSenior: { width: 104, height: 104, borderRadius: 52 },
   ctrlBigText: { fontSize: 38, color: '#fff' },
@@ -179,6 +245,7 @@ const styles = StyleSheet.create({
   transcriptToggleText: { fontWeight: 'bold' },
   transcriptBox: { marginTop: SPACING.md, borderRadius: RADII.adult.card + 2, borderWidth: 1, padding: SPACING.lg, width: '100%' },
   transcriptText: { textAlign: 'left' },
+  currentWord: { fontWeight: 'bold', borderRadius: 4 },
   section: { fontWeight: 'bold', marginTop: SPACING.xxl + 4, marginBottom: SPACING.md },
   epCard: { flexDirection: 'row', alignItems: 'center', borderRadius: RADII.adult.card + 2, borderWidth: 2, padding: SPACING.lg, marginBottom: SPACING.md },
   epCardSenior: { borderRadius: RADII.elderly.card, padding: SPACING.xl, marginBottom: SPACING.lg + 4 },

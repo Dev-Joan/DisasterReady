@@ -8,8 +8,12 @@ import AnimatedProgressBar from '../components/AnimatedProgressBar';
 import CountUpNumber from '../components/CountUpNumber';
 import BouncyPress from '../components/BouncyPress';
 import BouncyMascot from '../components/BouncyMascot';
+import StackReveal from '../components/StackReveal';
 import SkyDecor from '../components/SkyDecor';
 import FlameFlicker from '../components/FlameFlicker';
+import WeatherSummaryCard from '../components/WeatherSummaryCard';
+import TeenPathCard from '../components/TeenPathCard';
+import { TEEN_LESSONS } from '../constants/lessonSchema';
 import apiRequest from '../services/api';
 import { useUser } from '../context/UserContext';
 import { useTheme } from '../context/ThemeContext';
@@ -47,6 +51,8 @@ export default function HomeScreen({ navigation }) {
   const [profile, setProfile] = useState(null);
   const [gamification, setGamification] = useState(null);
   const [alerts, setAlerts] = useState([]);
+  const [weather, setWeather] = useState(null);
+  const [completedLessons, setCompletedLessons] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [loadError, setLoadError] = useState(false);
@@ -66,6 +72,22 @@ export default function HomeScreen({ navigation }) {
       setGamification(gamResult);
       const alertsResult = await apiRequest(`/alerts/active?userId=${userId}`, 'GET');
       setAlerts(alertsResult.alerts);
+      if (profileResult.experienceMode === 'adult' || profileResult.experienceMode === 'elderly') {
+        try {
+          const weatherResult = await apiRequest(`/weather?userId=${userId}`, 'GET');
+          setWeather(weatherResult);
+        } catch (weatherErr) {
+          console.log('Home weather load error:', weatherErr.message);
+        }
+      }
+      if (profileResult.experienceMode === 'teen') {
+        try {
+          const lessonsResult = await apiRequest(`/gamification/lessons?userId=${userId}`, 'GET');
+          setCompletedLessons(lessonsResult.completedLessons || []);
+        } catch (lessonsErr) {
+          console.log('Home lessons load error:', lessonsErr.message);
+        }
+      }
     } catch (err) {
       console.log('Home load error:', err.message);
       if (!profile || !gamification) setLoadError(true);
@@ -139,9 +161,14 @@ export default function HomeScreen({ navigation }) {
 
   // When a severe alert is active, key surfaces override the age theme with
   // the universal emergency palette so alerts read the same in every mode.
+  // Teen mode uses its own fixed dark palette rather than the light/dark
+  // theme toggle — a consistent Duolingo-style identity, not a light theme
+  // with a few accent borders.
   const surface = severeAlertActive
     ? { bg: EMERGENCY_OVERRIDE.background, text: EMERGENCY_OVERRIDE.text, textSub: EMERGENCY_OVERRIDE.textSub }
-    : { bg: theme.bg, text: theme.text, textSub: theme.textSub };
+    : mode === 'teen'
+      ? { bg: TEEN.slate, text: TEEN.text, textSub: TEEN.textSub }
+      : { bg: theme.bg, text: theme.text, textSub: theme.textSub };
 
   const AlertBanner = () =>
     hasActiveAlert ? (
@@ -203,10 +230,10 @@ export default function HomeScreen({ navigation }) {
           {KID_BADGES.map((badge, i) => {
             const earned = gamification.badges.includes(badge.id);
             return (
-              <Animated.View key={badge.id} entering={FadeInDown.delay(i * 60).duration(300)} style={[styles.badgeChip, !earned && styles.badgeChipLocked]} accessibilityLabel={`${badge.label}: ${earned ? 'earned' : 'locked'}`}>
+              <StackReveal key={badge.id} index={i} style={[styles.badgeChip, !earned && styles.badgeChipLocked]} accessibilityLabel={`${badge.label}: ${earned ? 'earned' : 'locked'}`}>
                 <Text style={styles.badgeEmoji}>{earned ? badge.emoji : '🔒'}</Text>
                 <Text style={[styles.badgeLabel, !earned && styles.badgeLabelLocked]}>{badge.label}</Text>
-              </Animated.View>
+              </StackReveal>
             );
           })}
         </ScrollView>
@@ -228,14 +255,14 @@ export default function HomeScreen({ navigation }) {
               style={[styles.questCard, { backgroundColor: quest.color }, touchTargetStyle(a11y, 70)]}
               onPress={() => navigation.navigate('KitBuilder', { hazard: quest.hazard })}
               accessibilityRole="button"
-              accessibilityLabel={`${quest.title}. ${quest.desc}. 4 levels.`}
+              accessibilityLabel={`${quest.title}. ${quest.desc}. Drag and drop kit challenge.`}
               {...touchTargetProps(a11y)}
             >
               <Text style={styles.questEmoji}>{quest.emoji}</Text>
               <View style={styles.questInfo}>
                 <Text style={styles.questTitle}>{quest.title}</Text>
                 <Text style={styles.questSub}>{quest.desc}</Text>
-                <Text style={styles.questMeta}>4 levels · Play now ▶</Text>
+                <Text style={styles.questMeta}>🎒 Drag & pack · Play now ▶</Text>
               </View>
             </BouncyPress>
           </Animated.View>
@@ -263,22 +290,56 @@ export default function HomeScreen({ navigation }) {
 
         <Animated.View entering={FadeInDown.delay((KID_QUESTS.length + 1) * 90).duration(340).springify().damping(14)}>
           <BouncyPress
-            style={[styles.questCard, { backgroundColor: '#6D5BD0' }, touchTargetStyle(a11y, 70)]}
-            onPress={() => navigation.navigate('DispatchHero')}
+            style={[styles.questCard, { backgroundColor: '#B45309' }, touchTargetStyle(a11y, 70)]}
+            onPress={() => navigation.navigate('SafeSpotExplorer')}
             accessibilityRole="button"
-            accessibilityLabel="Dispatch Hero. Rank emergencies and send a clear message."
+            accessibilityLabel="Safe Spot Explorer. Find hidden hazards, then practice Drop, Cover, Hold On."
             {...touchTargetProps(a11y)}
           >
-            <Text style={styles.questEmoji}>📞</Text>
+            <Text style={styles.questEmoji}>🔎</Text>
             <View style={styles.questInfo}>
-              <Text style={styles.questTitle}>Dispatch Hero</Text>
-              <Text style={styles.questSub}>Rank emergencies and send a clear message!</Text>
-              <Text style={styles.questMeta}>Play now ▶</Text>
+              <Text style={styles.questTitle}>Safe Spot Explorer</Text>
+              <Text style={styles.questSub}>Find hidden hazards, then Drop, Cover, Hold On!</Text>
+              <Text style={styles.questMeta}>🕵️ Hidden hazard hunt · Play now ▶</Text>
             </View>
           </BouncyPress>
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay((KID_QUESTS.length + 2) * 90).duration(340).springify().damping(14)}>
+          <BouncyPress
+            style={[styles.questCard, { backgroundColor: '#C2410C' }, touchTargetStyle(a11y, 70)]}
+            onPress={() => navigation.navigate('RouteRunner')}
+            accessibilityRole="button"
+            accessibilityLabel="Hazard Hero Route Runner. Find a clear path out of a smoky building."
+            {...touchTargetProps(a11y)}
+          >
+            <Text style={styles.questEmoji}>🏃</Text>
+            <View style={styles.questInfo}>
+              <Text style={styles.questTitle}>Hazard Hero: Route Runner</Text>
+              <Text style={styles.questSub}>Swipe through a maze — dodge smoke, water & wires!</Text>
+              <Text style={styles.questMeta}>🧭 Swipe to move · Play now ▶</Text>
+            </View>
+          </BouncyPress>
+        </Animated.View>
+
+        <Animated.View entering={FadeInDown.delay((KID_QUESTS.length + 3) * 90).duration(340).springify().damping(14)}>
+          <BouncyPress
+            style={[styles.questCard, { backgroundColor: '#6D5BD0' }, touchTargetStyle(a11y, 70)]}
+            onPress={() => navigation.navigate('DispatchHero')}
+            accessibilityRole="button"
+            accessibilityLabel="Dispatch Hero. Call for help, breathe calmly, and tell the dispatcher what's wrong."
+            {...touchTargetProps(a11y)}
+          >
+            <Text style={styles.questEmoji}>📞</Text>
+            <View style={styles.questInfo}>
+              <Text style={styles.questTitle}>Dispatch Hero</Text>
+              <Text style={styles.questSub}>Call for help, stay calm, and speak clearly!</Text>
+              <Text style={styles.questMeta}>🌬️ Breathe & speak · Play now ▶</Text>
+            </View>
+          </BouncyPress>
+        </Animated.View>
+
+        <Animated.View entering={FadeInDown.delay((KID_QUESTS.length + 4) * 90).duration(340).springify().damping(14)}>
           <BouncyPress
             style={[styles.questCard, { backgroundColor: '#16A34A' }, touchTargetStyle(a11y, 70)]}
             onPress={() => navigation.navigate('FamilyPlanBuilder')}
@@ -295,7 +356,7 @@ export default function HomeScreen({ navigation }) {
           </BouncyPress>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay((KID_QUESTS.length + 3) * 90).duration(340).springify().damping(14)}>
+        <Animated.View entering={FadeInDown.delay((KID_QUESTS.length + 5) * 90).duration(340).springify().damping(14)}>
           <BouncyPress
             style={[styles.leaderboardCard, touchTargetStyle(a11y, 56)]}
             onPress={() => navigation.navigate('Leaderboard')}
@@ -323,53 +384,46 @@ export default function HomeScreen({ navigation }) {
           <HeaderIcons color={surface.textSub} />
         </View>
         <View style={styles.teenStatsRow}>
-          <View style={[styles.teenStatBox, { backgroundColor: theme.card, borderColor: theme.border }]} accessibilityLabel={`${gamification.currentStreak} day streak`}><CountUpNumber value={gamification.currentStreak} style={styles.teenStatNumber} /><Text style={[styles.teenStatLabel, { color: theme.textSub }]}>Day Streak</Text></View>
-          <View style={[styles.teenStatBox, { backgroundColor: theme.card, borderColor: theme.border }]} accessibilityLabel={`${gamification.badges.length} badges earned`}><CountUpNumber value={gamification.badges.length} style={styles.teenStatNumber} /><Text style={[styles.teenStatLabel, { color: theme.textSub }]}>Badges</Text></View>
-          <View style={[styles.teenStatBox, { backgroundColor: theme.card, borderColor: theme.border }]} accessibilityLabel={`Best streak ${gamification.longestStreak} days`}><CountUpNumber value={gamification.longestStreak} style={styles.teenStatNumber} /><Text style={[styles.teenStatLabel, { color: theme.textSub }]}>Best Streak</Text></View>
+          <View style={[styles.teenStatBox, { backgroundColor: TEEN.base, borderColor: TEEN.border }]} accessibilityLabel={`${gamification.currentStreak} day streak`}><CountUpNumber value={gamification.currentStreak} style={styles.teenStatNumber} /><Text style={[styles.teenStatLabel, { color: TEEN.textSub }]}>Day Streak</Text></View>
+          <View style={[styles.teenStatBox, { backgroundColor: TEEN.base, borderColor: TEEN.border }]} accessibilityLabel={`${gamification.badges.length} badges earned`}><CountUpNumber value={gamification.badges.length} style={styles.teenStatNumber} /><Text style={[styles.teenStatLabel, { color: TEEN.textSub }]}>Badges</Text></View>
+          <View style={[styles.teenStatBox, { backgroundColor: TEEN.base, borderColor: TEEN.border }]} accessibilityLabel={`Best streak ${gamification.longestStreak} days`}><CountUpNumber value={gamification.longestStreak} style={styles.teenStatNumber} /><Text style={[styles.teenStatLabel, { color: TEEN.textSub }]}>Best Streak</Text></View>
         </View>
-        <Animated.View entering={FadeInDown.delay(0).duration(320)}>
-          <TouchableOpacity
-            style={[styles.teenCta, { backgroundColor: TEEN.teal }, touchTargetStyle(a11y, 60)]}
-            onPress={() => navigation.navigate('LearningPath')}
-            accessibilityRole="button"
-            accessibilityLabel="Preparedness Path. Lesson-by-lesson learning, unlock as you go."
-            {...touchTargetProps(a11y)}
-          >
-            <Text style={styles.teenCtaTitle}>📚 Preparedness Path</Text>
-            <Text style={styles.teenCtaSub}>Lesson-by-lesson learning — unlock as you go</Text>
-          </TouchableOpacity>
-        </Animated.View>
+        <TeenPathCard
+          lessons={TEEN_LESSONS}
+          completed={completedLessons}
+          onPress={() => navigation.navigate('LearningPath')}
+        />
         <Animated.View entering={FadeInDown.delay(70).duration(320)}>
           <TouchableOpacity
-            style={[styles.teenCard, { backgroundColor: theme.card, borderColor: SEMANTIC.critical }, touchTargetStyle(a11y, 56)]}
+            style={[styles.teenCard, { backgroundColor: TEEN.base, borderColor: SEMANTIC.critical }, touchTargetStyle(a11y, 56)]}
             onPress={() => navigation.navigate('FirstAid')}
             accessibilityRole="button"
             accessibilityLabel="First Aid Guides"
             {...touchTargetProps(a11y)}
           >
-            <Text style={[styles.teenCardText, { color: theme.text }]}>🚑 First Aid Guides</Text>
+            <Text style={[styles.teenCardText, { color: TEEN.text }]}>🚑 First Aid Guides</Text>
           </TouchableOpacity>
         </Animated.View>
         <Animated.View entering={FadeInDown.delay(140).duration(320)}>
           <TouchableOpacity
-            style={[styles.teenCard, { backgroundColor: theme.card, borderColor: SEMANTIC.signal }, touchTargetStyle(a11y, 56)]}
+            style={[styles.teenCard, { backgroundColor: TEEN.base, borderColor: SEMANTIC.signal }, touchTargetStyle(a11y, 56)]}
             onPress={() => navigation.navigate('Alerts')}
             accessibilityRole="button"
             accessibilityLabel="Alerts Near You"
             {...touchTargetProps(a11y)}
           >
-            <Text style={[styles.teenCardText, { color: theme.text }]}>🚨 Alerts Near You</Text>
+            <Text style={[styles.teenCardText, { color: TEEN.text }]}>🚨 Alerts Near You</Text>
           </TouchableOpacity>
         </Animated.View>
         <Animated.View entering={FadeInDown.delay(175).duration(320)}>
           <TouchableOpacity
-            style={[styles.teenCard, { backgroundColor: theme.card, borderColor: TEEN.teal }, touchTargetStyle(a11y, 56)]}
+            style={[styles.teenCard, { backgroundColor: TEEN.base, borderColor: TEEN.teal }, touchTargetStyle(a11y, 56)]}
             onPress={() => navigation.navigate('Weather')}
             accessibilityRole="button"
             accessibilityLabel="Weather, current conditions and forecast"
             {...touchTargetProps(a11y)}
           >
-            <Text style={[styles.teenCardText, { color: theme.text }]}>⛅ Weather</Text>
+            <Text style={[styles.teenCardText, { color: TEEN.text }]}>⛅ Weather</Text>
           </TouchableOpacity>
         </Animated.View>
 
@@ -389,35 +443,35 @@ export default function HomeScreen({ navigation }) {
             </Animated.View>
             <Animated.View entering={FadeInDown.delay(280).duration(320)}>
               <TouchableOpacity
-                style={[styles.teenCard, { backgroundColor: theme.card, borderColor: TEEN.teal }, touchTargetStyle(a11y, 56)]}
-                onPress={() => navigation.navigate('KitBuilder', { hazard: 'flood' })}
+                style={[styles.teenCard, { backgroundColor: TEEN.base, borderColor: TEEN.indigo }, touchTargetStyle(a11y, 56)]}
+                onPress={() => navigation.navigate('TeenScenarioChallenge')}
                 accessibilityRole="button"
-                accessibilityLabel="Kit Builder Challenge"
+                accessibilityLabel="Scenario Challenge. Timed, scored decision-making under pressure."
                 {...touchTargetProps(a11y)}
               >
-                <Text style={[styles.teenCardText, { color: theme.text }]}>🎒 Kit Builder Challenge</Text>
+                <Text style={[styles.teenCardText, { color: TEEN.text }]}>⏱️ Scenario Challenge</Text>
               </TouchableOpacity>
             </Animated.View>
             <Animated.View entering={FadeInDown.delay(350).duration(320)}>
               <TouchableOpacity
-                style={[styles.teenCard, { backgroundColor: theme.card, borderColor: TEEN.indigo }, touchTargetStyle(a11y, 56)]}
+                style={[styles.teenCard, { backgroundColor: TEEN.base, borderColor: TEEN.indigo }, touchTargetStyle(a11y, 56)]}
                 onPress={() => navigation.navigate('Leaderboard')}
                 accessibilityRole="button"
                 accessibilityLabel="Leaderboard"
                 {...touchTargetProps(a11y)}
               >
-                <Text style={[styles.teenCardText, { color: theme.text }]}>🏆 Leaderboard</Text>
+                <Text style={[styles.teenCardText, { color: TEEN.text }]}>🏆 Leaderboard</Text>
               </TouchableOpacity>
             </Animated.View>
             <Animated.View entering={FadeInDown.delay(420).duration(320)}>
               <TouchableOpacity
-                style={[styles.teenCard, { backgroundColor: theme.card, borderColor: TEEN.teal }, touchTargetStyle(a11y, 56)]}
+                style={[styles.teenCard, { backgroundColor: TEEN.base, borderColor: TEEN.teal }, touchTargetStyle(a11y, 56)]}
                 onPress={() => navigation.navigate('Chatbot')}
                 accessibilityRole="button"
                 accessibilityLabel="Preparedness Assistant chatbot"
                 {...touchTargetProps(a11y)}
               >
-                <Text style={[styles.teenCardText, { color: theme.text }]}>💬 Preparedness Assistant</Text>
+                <Text style={[styles.teenCardText, { color: TEEN.text }]}>💬 Preparedness Assistant</Text>
               </TouchableOpacity>
             </Animated.View>
           </>
@@ -440,6 +494,7 @@ export default function HomeScreen({ navigation }) {
     ];
     const SENIOR_MORE = [
       { icon: '⛅', title: 'Weather', route: 'Weather', label: 'Weather, current conditions and forecast' },
+      { icon: '🎒', title: 'Emergency Kit', route: 'HouseholdKitPlanner', label: 'Household Emergency Kit planner' },
       { icon: '📰', title: 'Read Articles', route: 'Resources', label: 'Read Articles' },
       { icon: '🧠', title: 'Daily Quiz', route: 'Quiz', label: 'Daily Quiz' },
       { icon: '🏆', title: 'Knowledge Check', route: 'KnowledgeCheck', label: 'Knowledge Check' },
@@ -458,6 +513,15 @@ export default function HomeScreen({ navigation }) {
           </View>
           <HeaderIcons color={surface.textSub} />
         </View>
+
+        <WeatherSummaryCard
+          weather={weather}
+          mode="elderly"
+          theme={theme}
+          advisory={hasActiveAlert ? alerts[0] : null}
+          onPress={() => navigation.navigate('Weather')}
+        />
+
         <View style={styles.seniorScoreCard}>
           <Text style={styles.seniorScoreLabel}>Your progress</Text>
           <Text style={styles.seniorScoreText}>{gamification.points} points · {gamification.rank}</Text>
@@ -490,11 +554,10 @@ export default function HomeScreen({ navigation }) {
   const ADULT_TILES = [
     { icon: 'weather-partly-cloudy', title: 'Weather', sub: 'Current & forecast', route: 'Weather', accent: ADULT.sage },
     { icon: 'clipboard-check-outline', title: 'Daily Tasks', sub: "Today's action", route: 'Tasks', accent: ADULT.navy },
-    { icon: 'book-open-variant', title: 'Resource Hub', sub: 'Guides & videos', route: 'Resources', accent: ADULT.sage },
     { icon: 'bell-alert-outline', title: 'Live Alerts', sub: hasActiveAlert ? `${alerts.length} active` : 'All clear', route: 'Alerts', accent: hasActiveAlert ? SEMANTIC.critical : ADULT.navy },
     { icon: 'brain', title: 'Adaptive Quiz', sub: 'Scenario drills', route: 'Quiz', accent: ADULT.navy },
     { icon: 'school-outline', title: 'Knowledge Check', sub: '100 questions', route: 'KnowledgeCheck', accent: ADULT.amber },
-    { icon: 'bag-personal-outline', title: 'Kit Builder', sub: 'Build your kit', route: 'KitBuilder', params: { hazard: 'flood' }, accent: ADULT.sage },
+    { icon: 'bag-personal-outline', title: 'Emergency Kit', sub: 'Track your readiness', route: 'HouseholdKitPlanner', accent: ADULT.sage },
     { icon: 'chat-processing-outline', title: 'Assistant', sub: 'Ask a question', route: 'Chatbot', accent: ADULT.sage },
     { icon: 'trophy-variant-outline', title: 'Leaderboard', sub: 'See your rank', route: 'Leaderboard', accent: ADULT.sage }
   ];
@@ -527,6 +590,31 @@ export default function HomeScreen({ navigation }) {
           <Text style={[styles.adultStatChipLabel, { color: surface.textSub }]}>Alerts</Text>
         </View>
       </View>
+
+      <WeatherSummaryCard
+        weather={weather}
+        mode="adult"
+        theme={theme}
+        advisory={hasActiveAlert ? alerts[0] : null}
+        onPress={() => navigation.navigate('Weather')}
+      />
+
+      <Animated.View entering={FadeIn.duration(180)}>
+        <TouchableOpacity
+          style={[styles.adultHero, styles.resourceHero, touchTargetStyle(a11y, 64)]}
+          onPress={() => navigation.navigate('Resources')}
+          accessibilityRole="button"
+          accessibilityLabel="Resource Hub. Guides and videos on disaster preparedness."
+          {...touchTargetProps(a11y)}
+        >
+          <MaterialCommunityIcons name="book-open-variant" size={28} color="#fff" />
+          <View style={{ flex: 1, marginLeft: SPACING.md }}>
+            <Text style={[styles.adultHeroTitle, styles.resourceHeroTitle]}>Resource Hub</Text>
+            <Text style={styles.adultHeroSub}>Guides, articles, and videos — all in one place</Text>
+          </View>
+          <MaterialCommunityIcons name="chevron-right" size={24} color="rgba(255,255,255,0.7)" />
+        </TouchableOpacity>
+      </Animated.View>
 
       <Animated.View entering={FadeIn.duration(200)}>
         <TouchableOpacity
@@ -669,6 +757,11 @@ const styles = StyleSheet.create({
   adultHero: { flexDirection: 'row', alignItems: 'center', backgroundColor: SEMANTIC.critical, borderRadius: RADII.adult.card, padding: SPACING.md + 2, marginBottom: SPACING.lg },
   adultHeroTitle: { fontSize: TYPE.body.fontSize, fontWeight: 'bold', color: '#fff' },
   adultHeroSub: { fontSize: TYPE.caption.fontSize - 1, color: 'rgba(255,255,255,0.85)', marginTop: 1 },
+  // Larger and more prominent than the other hero card: bigger padding/
+  // radius, a bigger title, and a trailing chevron affordance — this is the
+  // first thing an adult user can tap on the home screen.
+  resourceHero: { backgroundColor: ADULT.navy, borderRadius: RADII.adult.card + 4, padding: SPACING.lg },
+  resourceHeroTitle: { fontSize: TYPE.title.fontSize - 2 },
 
   adultGrid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -SPACING.xs },
   adultTileWrap: { width: '50%', paddingHorizontal: SPACING.xs },

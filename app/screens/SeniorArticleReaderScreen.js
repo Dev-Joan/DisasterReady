@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Text from '../components/Text';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, {
@@ -92,7 +93,7 @@ export default function SeniorArticleReaderScreen({ route, navigation }) {
   const section = SECTIONS[index];
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -148,7 +149,7 @@ export default function SeniorArticleReaderScreen({ route, navigation }) {
           <Text style={styles.navButtonPrimaryText}>{index === SECTIONS.length - 1 ? 'FINISH' : 'NEXT ▶'}</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
