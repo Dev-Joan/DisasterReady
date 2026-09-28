@@ -1,7 +1,3 @@
-// Maps Open-Meteo's WMO weather codes (see server/services/weatherService.js
-// WEATHER_CODES, which this mirrors) onto the 10 bundled weather Lottie
-// icons in assets/lottie/weather/ (source: @meteocons/lottie, MIT — see
-// assets/lottie/SOURCES.md).
 const WEATHER_LOTTIE = {
   'clear-day': require('../assets/lottie/weather/clear-day.json'),
   'mostly-clear-day': require('../assets/lottie/weather/mostly-clear-day.json'),
@@ -14,10 +10,6 @@ const WEATHER_LOTTIE = {
   thunderstorms: require('../assets/lottie/weather/thunderstorms.json'),
   'thunderstorms-hail': require('../assets/lottie/weather/thunderstorms-hail.json')
 };
-
-// A warm/cool accent per condition group, used to tint the current-
-// conditions card so it visually reflects the actual weather rather than
-// always looking the same neutral card colour.
 const WEATHER_ACCENT = {
   'clear-day': '#F59E0B',
   'mostly-clear-day': '#F59E0B',
@@ -30,7 +22,6 @@ const WEATHER_ACCENT = {
   thunderstorms: '#7C3AED',
   'thunderstorms-hail': '#7C3AED'
 };
-
 function keyForWeatherCode(code) {
   if (code === 0) return 'clear-day';
   if (code === 1) return 'mostly-clear-day';
@@ -42,13 +33,11 @@ function keyForWeatherCode(code) {
   if ([71, 73, 75, 77, 85, 86].includes(code)) return 'snow';
   if (code === 95) return 'thunderstorms';
   if (code === 96 || code === 99) return 'thunderstorms-hail';
-  return 'partly-cloudy-day'; // sensible fallback for any unrecognised code
+  return 'partly-cloudy-day';
 }
-
 export function getWeatherLottieSource(weatherCode) {
   return WEATHER_LOTTIE[keyForWeatherCode(weatherCode)];
 }
-
 export function getWeatherAccentColor(weatherCode) {
   return WEATHER_ACCENT[keyForWeatherCode(weatherCode)];
 }

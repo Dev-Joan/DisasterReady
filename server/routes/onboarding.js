@@ -1,11 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db/connection');
-const { mapAgeToExperienceMode, mapCountryToHazards, mapAccessibilityFlags } = require('../services/authService');
-
+const {
+  mapAgeToExperienceMode,
+  mapCountryToHazards,
+  mapAccessibilityFlags
+} = require('../services/authService');
 const getUserStmt = db.prepare('SELECT * FROM users WHERE id = ?');
 const getFlagsStmt = db.prepare('SELECT flag FROM user_accessibility_flags WHERE user_id = ?');
 const updateThemeStmt = db.prepare('UPDATE users SET theme = ? WHERE id = ?');
+const updateNotificationsStmt = db.prepare('UPDATE users SET notifications_enabled = ? WHERE id = ?');
 const updateProfileStmt = db.prepare(`
   UPDATE users SET
     name = COALESCE(@name, name),
@@ -16,29 +20,25 @@ const updateProfileStmt = db.prepare(`
 `);
 const deleteFlagsStmt = db.prepare('DELETE FROM user_accessibility_flags WHERE user_id = ?');
 const insertFlagStmt = db.prepare('INSERT INTO user_accessibility_flags (user_id, flag) VALUES (?, ?)');
-
 function getFlags(userId) {
-  return getFlagsStmt.all(userId).map((r) => r.flag);
+  return getFlagsStmt.all(userId).map(r => r.flag);
 }
-
-// Replaces the full flag set for a user in one transaction (delete-then-
-// reinsert) rather than diffing add/remove — the incoming array from
-// Settings/Signup is always the complete desired set, so this can't leave
-// a stale flag behind from a step that failed halfway.
 const replaceFlags = db.transaction((userId, flags) => {
   deleteFlagsStmt.run(userId);
   for (const flag of flags) insertFlagStmt.run(userId, flag);
 });
-
 router.get('/profile', (req, res) => {
-  const { userId } = req.query;
-  if (!userId) return res.status(400).json({ error: 'userId is required' });
-
+  const {
+    userId
+  } = req.query;
+  if (!userId) return res.status(400).json({
+    error: 'userId is required'
+  });
   const user = getUserStmt.get(userId);
-  if (!user) return res.status(404).json({ error: 'User not found' });
-
+  if (!user) return res.status(404).json({
+    error: 'User not found'
+  });
   const flags = getFlags(userId);
-
   res.status(200).json({
     userId: user.id,
     name: user.name || null,
@@ -49,36 +49,72 @@ router.get('/profile', (req, res) => {
     relevantHazards: user.country ? mapCountryToHazards(user.country) : [],
     accessibilityFlags: flags,
     accessibilitySettings: mapAccessibilityFlags(flags),
-    theme: user.theme || 'light'
+    theme: user.theme || 'light',
+    notificationsEnabled: !!user.notifications_enabled
   });
 });
-
 router.post('/theme', (req, res) => {
-  const { userId, theme } = req.body;
-  if (!userId || !theme) return res.status(400).json({ error: 'userId and theme are required' });
-
+  const {
+    userId,
+    theme
+  } = req.body;
+  if (!userId || !theme) return res.status(400).json({
+    error: 'userId and theme are required'
+  });
   const user = getUserStmt.get(userId);
-  if (!user) return res.status(404).json({ error: 'User not found' });
-
+  if (!user) return res.status(404).json({
+    error: 'User not found'
+  });
   updateThemeStmt.run(theme, userId);
-  res.status(200).json({ userId, theme });
+  res.status(200).json({
+    userId,
+    theme
+  });
 });
-
-router.post('/update-profile', (req, res) => {
-  const { userId, name, age, region, country } = req.body;
-  if (!userId) return res.status(400).json({ error: 'userId is required' });
-
+router.post('/notifications', (req, res) => {
+  const {
+    userId,
+    enabled
+  } = req.body;
+  if (!userId || typeof enabled !== 'boolean') {
+    return res.status(400).json({
+      error: 'userId and enabled (boolean) are required'
+    });
+  }
   const user = getUserStmt.get(userId);
-  if (!user) return res.status(404).json({ error: 'User not found' });
-
+  if (!user) return res.status(404).json({
+    error: 'User not found'
+  });
+  updateNotificationsStmt.run(enabled ? 1 : 0, userId);
+  res.status(200).json({
+    userId,
+    notificationsEnabled: enabled
+  });
+});
+router.post('/update-profile', (req, res) => {
+  const {
+    userId,
+    name,
+    age,
+    region,
+    country
+  } = req.body;
+  if (!userId) return res.status(400).json({
+    error: 'userId is required'
+  });
+  const user = getUserStmt.get(userId);
+  if (!user) return res.status(404).json({
+    error: 'User not found'
+  });
   let ageNum = null;
   if (age !== undefined) {
     ageNum = parseInt(age, 10);
     if (isNaN(ageNum) || ageNum < 5) {
-      return res.status(400).json({ error: 'age must be a number of 5 or older' });
+      return res.status(400).json({
+        error: 'age must be a number of 5 or older'
+      });
     }
   }
-
   updateProfileStmt.run({
     id: userId,
     name: typeof name === 'string' && name.trim() ? name.trim() : null,
@@ -86,7 +122,6 @@ router.post('/update-profile', (req, res) => {
     region: typeof region === 'string' && region.trim() ? region.trim() : null,
     country: typeof country === 'string' && country.trim() ? country.trim() : null
   });
-
   const updated = getUserStmt.get(userId);
   res.status(200).json({
     userId,
@@ -98,18 +133,25 @@ router.post('/update-profile', (req, res) => {
     relevantHazards: updated.country ? mapCountryToHazards(updated.country) : []
   });
 });
-
 router.post('/accessibility', (req, res) => {
-  const { userId, accessibilityFlags } = req.body;
+  const {
+    userId,
+    accessibilityFlags
+  } = req.body;
   if (!userId || !Array.isArray(accessibilityFlags)) {
-    return res.status(400).json({ error: 'userId and accessibilityFlags (array) are required' });
+    return res.status(400).json({
+      error: 'userId and accessibilityFlags (array) are required'
+    });
   }
-
   const user = getUserStmt.get(userId);
-  if (!user) return res.status(404).json({ error: 'User not found' });
-
+  if (!user) return res.status(404).json({
+    error: 'User not found'
+  });
   replaceFlags(userId, accessibilityFlags);
-  res.status(200).json({ userId, accessibilityFlags, accessibilitySettings: mapAccessibilityFlags(accessibilityFlags) });
+  res.status(200).json({
+    userId,
+    accessibilityFlags,
+    accessibilitySettings: mapAccessibilityFlags(accessibilityFlags)
+  });
 });
-
 module.exports = router;

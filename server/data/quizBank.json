@@ -1,13 +1,802 @@
 [
-  { "questionId": "e1", "topic": "earthquake", "difficulty": 1, "text": "During an earthquake, what should you do if you're indoors?", "correctAnswer": "Drop, cover, and hold on", "explanation": "Dropping to the ground and taking cover under sturdy furniture protects you from falling debris." },
-  { "questionId": "e2", "topic": "earthquake", "difficulty": 1, "text": "What should you avoid doing during an earthquake?", "correctAnswer": "Running outside", "explanation": "Running outside during shaking increases risk of injury from falling debris." },
-  { "questionId": "e3", "topic": "earthquake", "difficulty": 2, "text": "Where is the safest place to be during an earthquake if you're in bed?", "correctAnswer": "Stay in bed and cover your head with a pillow", "explanation": "Moving increases injury risk; staying low and protecting your head is safer." },
-  { "questionId": "e4", "topic": "earthquake", "difficulty": 2, "text": "What should be in an earthquake emergency kit?", "correctAnswer": "Water, food, flashlight, first aid supplies", "explanation": "These basics keep you safe if help is delayed." },
-  { "questionId": "e5", "topic": "earthquake", "difficulty": 3, "text": "After an earthquake, what should you check first?", "correctAnswer": "Gas leaks and structural damage", "explanation": "Gas leaks pose fire/explosion risk and should be checked immediately." },
-
-  { "questionId": "f1", "topic": "flood", "difficulty": 1, "text": "What is the safest action if you're told to evacuate before a flood?", "correctAnswer": "Leave immediately via the recommended route", "explanation": "Delaying evacuation increases risk of being trapped by rising water." },
-  { "questionId": "f2", "topic": "flood", "difficulty": 1, "text": "Why should you avoid walking through flood water?", "correctAnswer": "It may be deeper or faster-moving than it appears", "explanation": "Flood water can conceal hazards and sweep people away." },
-  { "questionId": "f3", "topic": "flood", "difficulty": 2, "text": "What should you do with electrical appliances before a flood?", "correctAnswer": "Turn off and unplug them", "explanation": "Prevents electrocution risk and fire hazards from water damage." },
-  { "questionId": "f4", "topic": "flood", "difficulty": 2, "text": "Why should you avoid driving through floodwater?", "correctAnswer": "Cars can be swept away in shallow-looking water", "explanation": "Most flood deaths involve vehicles." },
-  { "questionId": "f5", "topic": "flood", "difficulty": 3, "text": "What's a key step in a household flood plan?", "correctAnswer": "Identify an evacuation route and higher ground", "explanation": "Knowing where to go in advance saves critical time." }
+  {
+    "questionId": "e1",
+    "topic": "earthquake",
+    "difficulty": 1,
+    "text": "During an earthquake, what should you do if you're indoors?",
+    "correctAnswer": "Drop, cover, and hold on",
+    "explanation": "Dropping to the ground and taking cover under sturdy furniture protects you from falling debris."
+  },
+  {
+    "questionId": "e2",
+    "topic": "earthquake",
+    "difficulty": 1,
+    "text": "What should you avoid doing during an earthquake?",
+    "correctAnswer": "Running outside",
+    "explanation": "Running outside during shaking increases risk of injury from falling debris."
+  },
+  {
+    "questionId": "e6",
+    "topic": "earthquake",
+    "difficulty": 1,
+    "text": "What is the recommended first move when you feel a strong earthquake begin?",
+    "correctAnswer": "Drop to the ground immediately",
+    "explanation": "Getting low first prevents you from being knocked over by the shaking."
+  },
+  {
+    "questionId": "e7",
+    "topic": "earthquake",
+    "difficulty": 1,
+    "text": "If you are outdoors during an earthquake, where should you move to?",
+    "correctAnswer": "An open area away from buildings, trees, and power lines",
+    "explanation": "These can collapse or fall during shaking and cause injury."
+  },
+  {
+    "questionId": "e8",
+    "topic": "earthquake",
+    "difficulty": 1,
+    "text": "What household item should be secured to prevent it from tipping over in a quake?",
+    "correctAnswer": "Tall furniture like bookshelves and cabinets",
+    "explanation": "Unsecured furniture is a leading cause of injury when it tips over during shaking."
+  },
+  {
+    "questionId": "e9",
+    "topic": "earthquake",
+    "difficulty": 1,
+    "text": "Why should you practice earthquake drills at home?",
+    "correctAnswer": "So the Drop, Cover, Hold On response becomes automatic",
+    "explanation": "Muscle memory helps you react correctly even when panicked."
+  },
+  {
+    "questionId": "e10",
+    "topic": "earthquake",
+    "difficulty": 1,
+    "text": "What should you do if you're in a wheelchair during an earthquake?",
+    "correctAnswer": "Lock the wheels and cover your head and neck",
+    "explanation": "Locking the wheels prevents rolling, and covering your head reduces injury from debris."
+  },
+  {
+    "questionId": "e3",
+    "topic": "earthquake",
+    "difficulty": 2,
+    "text": "Where is the safest place to be during an earthquake if you're in bed?",
+    "correctAnswer": "Stay in bed and cover your head with a pillow",
+    "explanation": "Moving increases injury risk; staying low and protecting your head is safer."
+  },
+  {
+    "questionId": "e4",
+    "topic": "earthquake",
+    "difficulty": 2,
+    "text": "What should be in an earthquake emergency kit?",
+    "correctAnswer": "Water, food, flashlight, first aid supplies",
+    "explanation": "These basics keep you safe if help is delayed."
+  },
+  {
+    "questionId": "e11",
+    "topic": "earthquake",
+    "difficulty": 2,
+    "text": "Is a doorway a safer place than sturdy furniture during an earthquake in a modern home?",
+    "correctAnswer": "No, doorways are not safer than sturdy furniture in modern homes",
+    "explanation": "Modern doorframes are no stronger than the rest of the house; get under a table instead if one is available."
+  },
+  {
+    "questionId": "e12",
+    "topic": "earthquake",
+    "difficulty": 2,
+    "text": "What should you do immediately after the shaking from an earthquake stops?",
+    "correctAnswer": "Check yourself and others for injuries, then check for hazards",
+    "explanation": "Addressing injuries first, then hazards like gas leaks, keeps everyone safer."
+  },
+  {
+    "questionId": "e13",
+    "topic": "earthquake",
+    "difficulty": 2,
+    "text": "If you're driving when an earthquake starts, what should you do?",
+    "correctAnswer": "Pull over away from buildings, bridges, and overpasses, and stay in the car",
+    "explanation": "Bridges and overpasses can be damaged or collapse during strong shaking."
+  },
+  {
+    "questionId": "e14",
+    "topic": "earthquake",
+    "difficulty": 2,
+    "text": "Why should heavy items be stored on lower shelves?",
+    "correctAnswer": "So they can't fall from a height and injure someone during shaking",
+    "explanation": "Items stored low have less distance to fall and cause less injury."
+  },
+  {
+    "questionId": "e15",
+    "topic": "earthquake",
+    "difficulty": 2,
+    "text": "What is an emergency whistle used for in a go-bag?",
+    "correctAnswer": "To signal for help if trapped under debris",
+    "explanation": "A whistle carries further and requires less energy than shouting."
+  },
+  {
+    "questionId": "e5",
+    "topic": "earthquake",
+    "difficulty": 3,
+    "text": "After an earthquake, what should you check first?",
+    "correctAnswer": "Gas leaks and structural damage",
+    "explanation": "Gas leaks pose fire/explosion risk and should be checked immediately."
+  },
+  {
+    "questionId": "e16",
+    "topic": "earthquake",
+    "difficulty": 3,
+    "text": "What is an aftershock?",
+    "correctAnswer": "A smaller earthquake that follows the main shock in the same area",
+    "explanation": "Aftershocks can occur for days or weeks and can still cause damage to weakened structures."
+  },
+  {
+    "questionId": "e17",
+    "topic": "earthquake",
+    "difficulty": 3,
+    "text": "Why is a natural gas shutoff wrench often kept near the gas meter?",
+    "correctAnswer": "To manually shut off gas quickly if a leak is suspected after a quake",
+    "explanation": "Preventing a lingering gas leak reduces the risk of fire or explosion."
+  },
+  {
+    "questionId": "e18",
+    "topic": "earthquake",
+    "difficulty": 3,
+    "text": "What should you do if you smell gas after an earthquake?",
+    "correctAnswer": "Leave the building immediately and call the gas company from a safe distance",
+    "explanation": "Never use a light switch, phone, or flame near a suspected leak - any spark can ignite it."
+  },
+  {
+    "questionId": "e19",
+    "topic": "earthquake",
+    "difficulty": 3,
+    "text": "Why might elevators be unsafe to use after an earthquake, even if shaking has stopped?",
+    "correctAnswer": "Aftershocks or structural damage can trap you between floors",
+    "explanation": "Always use stairs after an earthquake, even once the shaking has ended."
+  },
+  {
+    "questionId": "e20",
+    "topic": "earthquake",
+    "difficulty": 3,
+    "text": "What is 'liquefaction' and why does it matter after an earthquake?",
+    "correctAnswer": "Shaken, saturated soil temporarily behaves like a liquid, which can cause buildings to sink or tilt",
+    "explanation": "It's a major cause of structural damage in areas with loose, water-saturated soil."
+  },
+  {
+    "questionId": "f1",
+    "topic": "flood",
+    "difficulty": 1,
+    "text": "What is the safest action if you're told to evacuate before a flood?",
+    "correctAnswer": "Leave immediately via the recommended route",
+    "explanation": "Delaying evacuation increases risk of being trapped by rising water."
+  },
+  {
+    "questionId": "f2",
+    "topic": "flood",
+    "difficulty": 1,
+    "text": "Why should you avoid walking through flood water?",
+    "correctAnswer": "It may be deeper or faster-moving than it appears",
+    "explanation": "Flood water can conceal hazards and sweep people away."
+  },
+  {
+    "questionId": "f6",
+    "topic": "flood",
+    "difficulty": 1,
+    "text": "What is the first thing you should do when a flood watch is issued for your area?",
+    "correctAnswer": "Start preparing to act - review your evacuation plan and gather supplies",
+    "explanation": "A watch means flooding is possible, so acting early gives you more options."
+  },
+  {
+    "questionId": "f7",
+    "topic": "flood",
+    "difficulty": 1,
+    "text": "How many inches of moving water can knock an adult off their feet?",
+    "correctAnswer": "About 6 inches",
+    "explanation": "Fast-moving water is far more powerful than it looks, even at shallow depths."
+  },
+  {
+    "questionId": "f8",
+    "topic": "flood",
+    "difficulty": 1,
+    "text": "What should you do with important documents before a flood?",
+    "correctAnswer": "Store copies in a waterproof container or digitally",
+    "explanation": "This protects your ID, insurance, and medical records from water damage."
+  },
+  {
+    "questionId": "f9",
+    "topic": "flood",
+    "difficulty": 1,
+    "text": "Why should you move to a higher floor rather than a basement during a flood?",
+    "correctAnswer": "Basements fill with water first and can trap you",
+    "explanation": "Water flows downward, so higher ground is always safer during flooding."
+  },
+  {
+    "questionId": "f10",
+    "topic": "flood",
+    "difficulty": 1,
+    "text": "What everyday item helps keep your feet safe when floodwater has receded but the ground is still wet?",
+    "correctAnswer": "Rubber boots",
+    "explanation": "They also protect your feet from hidden debris and contaminated water."
+  },
+  {
+    "questionId": "f3",
+    "topic": "flood",
+    "difficulty": 2,
+    "text": "What should you do with electrical appliances before a flood?",
+    "correctAnswer": "Turn off and unplug them",
+    "explanation": "Prevents electrocution risk and fire hazards from water damage."
+  },
+  {
+    "questionId": "f4",
+    "topic": "flood",
+    "difficulty": 2,
+    "text": "Why should you avoid driving through floodwater?",
+    "correctAnswer": "Cars can be swept away in shallow-looking water",
+    "explanation": "Most flood deaths involve vehicles."
+  },
+  {
+    "questionId": "f11",
+    "topic": "flood",
+    "difficulty": 2,
+    "text": "What is the difference between a flood watch and a flood warning?",
+    "correctAnswer": "A watch means flooding is possible; a warning means flooding is happening or imminent",
+    "explanation": "A warning requires immediate action, while a watch means you should prepare."
+  },
+  {
+    "questionId": "f12",
+    "topic": "flood",
+    "difficulty": 2,
+    "text": "Why is floodwater often contaminated?",
+    "correctAnswer": "It can mix with sewage, chemicals, and debris",
+    "explanation": "Contact with floodwater can cause illness or infection, even in shallow water."
+  },
+  {
+    "questionId": "f13",
+    "topic": "flood",
+    "difficulty": 2,
+    "text": "What should you do with your car if flooding is expected and you can't move it to higher ground?",
+    "correctAnswer": "Leave it and prioritize your own safety",
+    "explanation": "A car isn't worth risking your life for; it can be replaced."
+  },
+  {
+    "questionId": "f14",
+    "topic": "flood",
+    "difficulty": 2,
+    "text": "Why should you avoid touching electrical equipment when standing in or near floodwater?",
+    "correctAnswer": "Water conducts electricity and can cause electrocution",
+    "explanation": "Even equipment that looks off can still be live if not properly disconnected."
+  },
+  {
+    "questionId": "f15",
+    "topic": "flood",
+    "difficulty": 2,
+    "text": "What does 'turn around, don't drown' mean?",
+    "correctAnswer": "Never drive or walk into flooded roads, no matter how familiar the road is",
+    "explanation": "Floodwater can hide washed-out roads, and most flood deaths happen in vehicles."
+  },
+  {
+    "questionId": "f5",
+    "topic": "flood",
+    "difficulty": 3,
+    "text": "What's a key step in a household flood plan?",
+    "correctAnswer": "Identify an evacuation route and higher ground",
+    "explanation": "Knowing where to go in advance saves critical time."
+  },
+  {
+    "questionId": "f16",
+    "topic": "flood",
+    "difficulty": 3,
+    "text": "What is a flash flood?",
+    "correctAnswer": "A sudden flood that develops within minutes to hours, often from intense rainfall",
+    "explanation": "Flash floods give very little warning time, so acting fast on alerts is critical."
+  },
+  {
+    "questionId": "f17",
+    "topic": "flood",
+    "difficulty": 3,
+    "text": "Why might flood insurance be necessary even outside a designated flood zone?",
+    "correctAnswer": "A large percentage of flood claims come from outside high-risk zones",
+    "explanation": "Standard homeowners insurance usually does not cover flood damage at all."
+  },
+  {
+    "questionId": "f18",
+    "topic": "flood",
+    "difficulty": 3,
+    "text": "What should you check on your water supply after a flood before drinking it?",
+    "correctAnswer": "Whether local authorities have issued a boil-water advisory",
+    "explanation": "Flooding can contaminate water treatment systems and private wells."
+  },
+  {
+    "questionId": "f19",
+    "topic": "flood",
+    "difficulty": 3,
+    "text": "Why is it dangerous to re-enter a flooded building too soon?",
+    "correctAnswer": "Structural damage, contamination, and gas leaks may not be visible",
+    "explanation": "Wait for officials to confirm it's safe before going back inside."
+  },
+  {
+    "questionId": "f20",
+    "topic": "flood",
+    "difficulty": 3,
+    "text": "What is storm surge?",
+    "correctAnswer": "A rise in seawater level caused by a storm, on top of the normal tide",
+    "explanation": "It is often the deadliest hazard from a hurricane, capable of flooding coastal areas rapidly."
+  },
+  {
+    "questionId": "gp1",
+    "topic": "general_prep",
+    "difficulty": 1,
+    "text": "How many days should a basic emergency kit cover per person?",
+    "correctAnswer": "At least 3 days (72 hours)",
+    "explanation": "Kits should include water, non-perishable food, and other essentials for at least this long."
+  },
+  {
+    "questionId": "gp2",
+    "topic": "general_prep",
+    "difficulty": 1,
+    "text": "Why should a family have an out-of-area emergency contact?",
+    "correctAnswer": "Long-distance calls or texts often get through when local lines are congested",
+    "explanation": "This lets separated family members relay their status through one shared contact."
+  },
+  {
+    "questionId": "gp6",
+    "topic": "general_prep",
+    "difficulty": 1,
+    "text": "What should be included in every household emergency kit?",
+    "correctAnswer": "Water, non-perishable food, flashlight, and first aid supplies",
+    "explanation": "These cover your most urgent needs if utilities or stores are unavailable."
+  },
+  {
+    "questionId": "gp7",
+    "topic": "general_prep",
+    "difficulty": 1,
+    "text": "How much water should you store per person, per day?",
+    "correctAnswer": "One gallon",
+    "explanation": "This covers both drinking and basic sanitation needs."
+  },
+  {
+    "questionId": "gp8",
+    "topic": "general_prep",
+    "difficulty": 1,
+    "text": "Why should you keep a battery-powered or hand-crank radio in your kit?",
+    "correctAnswer": "To receive emergency updates if the power or internet is out",
+    "explanation": "Official broadcasts often continue even when cell networks are overloaded or down."
+  },
+  {
+    "questionId": "gp9",
+    "topic": "general_prep",
+    "difficulty": 1,
+    "text": "What should you do with your emergency kit after using items from it?",
+    "correctAnswer": "Restock it as soon as possible",
+    "explanation": "A partially-used kit may not be enough for a second emergency."
+  },
+  {
+    "questionId": "gp10",
+    "topic": "general_prep",
+    "difficulty": 1,
+    "text": "Why should medications be included in a go-bag?",
+    "correctAnswer": "So essential prescriptions are not left behind during a sudden evacuation",
+    "explanation": "Running out of critical medication during a disaster can be dangerous."
+  },
+  {
+    "questionId": "gp3",
+    "topic": "general_prep",
+    "difficulty": 2,
+    "text": "What is a 'go-bag'?",
+    "correctAnswer": "A smaller, grab-and-go kit to sustain one person for 24-72 hours",
+    "explanation": "It should be packed and kept by the door so you are not searching for items under pressure during an evacuation."
+  },
+  {
+    "questionId": "gp4",
+    "topic": "general_prep",
+    "difficulty": 2,
+    "text": "What should a household evacuation plan include?",
+    "correctAnswer": "At least two evacuation routes and a meeting point",
+    "explanation": "A single planned route can become blocked, so having an alternative and a rally point matters."
+  },
+  {
+    "questionId": "gp11",
+    "topic": "general_prep",
+    "difficulty": 2,
+    "text": "Why should a family agree on an out-of-town meeting point, not just a local one?",
+    "correctAnswer": "In case the local area is unsafe or inaccessible to return to",
+    "explanation": "A second, farther meeting point covers the case where home itself isn't reachable."
+  },
+  {
+    "questionId": "gp12",
+    "topic": "general_prep",
+    "difficulty": 2,
+    "text": "What is the purpose of practicing your family's emergency plan?",
+    "correctAnswer": "So everyone knows what to do without hesitation in a real emergency",
+    "explanation": "Practice reduces panic and confusion when it matters most."
+  },
+  {
+    "questionId": "gp13",
+    "topic": "general_prep",
+    "difficulty": 2,
+    "text": "Why should you know multiple ways out of your neighborhood?",
+    "correctAnswer": "A single route can become blocked or congested",
+    "explanation": "Having alternates ensures you can still evacuate if your main route is unusable."
+  },
+  {
+    "questionId": "gp14",
+    "topic": "general_prep",
+    "difficulty": 2,
+    "text": "What should a family communication plan include for a child too young to use a phone?",
+    "correctAnswer": "A memorized emergency contact number and a plan for who picks them up",
+    "explanation": "Children need a simple, clear plan they can follow even when scared."
+  },
+  {
+    "questionId": "gp15",
+    "topic": "general_prep",
+    "difficulty": 2,
+    "text": "Why should you register power-dependent medical equipment with your utility company?",
+    "correctAnswer": "Some utilities prioritize restoring power to registered medical-need households",
+    "explanation": "This can matter significantly during extended outages."
+  },
+  {
+    "questionId": "gp5",
+    "topic": "general_prep",
+    "difficulty": 3,
+    "text": "When preparing for a household member who relies on powered medical equipment, what should the plan include?",
+    "correctAnswer": "A backup power source and a list of medications and device settings",
+    "explanation": "Not every emergency shelter can accommodate every medical need, so this preparation should happen in advance."
+  },
+  {
+    "questionId": "gp16",
+    "topic": "general_prep",
+    "difficulty": 3,
+    "text": "What is the purpose of a 'shelter-in-place' plan, as opposed to evacuation?",
+    "correctAnswer": "To stay safely inside when going outside is more dangerous than remaining home",
+    "explanation": "Certain hazards, like some chemical releases, are safer to wait out indoors."
+  },
+  {
+    "questionId": "gp17",
+    "topic": "general_prep",
+    "difficulty": 3,
+    "text": "Why should a household emergency plan account for pets?",
+    "correctAnswer": "Many emergency shelters do not accept pets, so a separate plan may be needed",
+    "explanation": "Leaving pets behind is also a common reason people delay evacuating."
+  },
+  {
+    "questionId": "gp18",
+    "topic": "general_prep",
+    "difficulty": 3,
+    "text": "What should be included in a plan for a family member with a disability?",
+    "correctAnswer": "Specific needs like mobility equipment, communication methods, and support contacts",
+    "explanation": "Generic plans often don't account for individual accessibility needs."
+  },
+  {
+    "questionId": "gp19",
+    "topic": "general_prep",
+    "difficulty": 3,
+    "text": "Why is cash recommended in an emergency kit, even in a digital age?",
+    "correctAnswer": "Power outages can disable card readers and ATMs",
+    "explanation": "Small bills let you pay for essentials when electronic payment isn't possible."
+  },
+  {
+    "questionId": "gp20",
+    "topic": "general_prep",
+    "difficulty": 3,
+    "text": "What is the benefit of a 'family emergency binder' with copies of key documents?",
+    "correctAnswer": "It keeps ID, insurance, and medical records accessible in one place during a crisis",
+    "explanation": "Recovering from a disaster is much harder without proof of identity or coverage."
+  },
+  {
+    "questionId": "sw1",
+    "topic": "severe_weather",
+    "difficulty": 1,
+    "text": "Where is the safest place to shelter during a tornado warning?",
+    "correctAnswer": "An interior room on the lowest floor, away from windows",
+    "explanation": "A small interior room like a bathroom or closet minimizes exposure to flying debris."
+  },
+  {
+    "questionId": "sw2",
+    "topic": "severe_weather",
+    "difficulty": 1,
+    "text": "What does the '30-30 rule' for lightning mean?",
+    "correctAnswer": "Seek shelter if thunder follows lightning within 30 seconds, and wait 30 minutes after the last thunderclap",
+    "explanation": "If you can hear thunder, you are close enough to be struck by lightning."
+  },
+  {
+    "questionId": "sw6",
+    "topic": "severe_weather",
+    "difficulty": 1,
+    "text": "What should you do if a tornado warning is issued for your area?",
+    "correctAnswer": "Go to your safe shelter location immediately",
+    "explanation": "A warning means a tornado has been spotted or indicated by radar - act now."
+  },
+  {
+    "questionId": "sw7",
+    "topic": "severe_weather",
+    "difficulty": 1,
+    "text": "What is the safest place in a home without a basement during a tornado?",
+    "correctAnswer": "A small interior room on the lowest floor, like a bathroom or closet",
+    "explanation": "Being away from windows and exterior walls reduces injury risk from debris."
+  },
+  {
+    "questionId": "sw8",
+    "topic": "severe_weather",
+    "difficulty": 1,
+    "text": "Why should you avoid being near windows during a severe thunderstorm?",
+    "correctAnswer": "High winds and hail can shatter glass",
+    "explanation": "Flying glass is a major cause of injury during severe storms."
+  },
+  {
+    "questionId": "sw9",
+    "topic": "severe_weather",
+    "difficulty": 1,
+    "text": "What should you do with patio furniture before a severe storm?",
+    "correctAnswer": "Bring it inside or secure it",
+    "explanation": "Unsecured furniture can become a dangerous projectile in high winds."
+  },
+  {
+    "questionId": "sw10",
+    "topic": "severe_weather",
+    "difficulty": 1,
+    "text": "What is the safest action if you're caught outside during a lightning storm with no shelter nearby?",
+    "correctAnswer": "Crouch low with minimal contact with the ground, away from tall objects",
+    "explanation": "This is a last resort, not a guarantee of safety - shelter is always safer."
+  },
+  {
+    "questionId": "sw3",
+    "topic": "severe_weather",
+    "difficulty": 2,
+    "text": "What is the difference between a hurricane watch and a hurricane warning?",
+    "correctAnswer": "A watch means conditions are possible; a warning means they are expected soon",
+    "explanation": "A watch (48 hours out) is time to finalize plans; a warning (36 hours out) means act now."
+  },
+  {
+    "questionId": "sw4",
+    "topic": "severe_weather",
+    "difficulty": 2,
+    "text": "What should you do with loose outdoor items before a storm?",
+    "correctAnswer": "Secure them or bring them inside",
+    "explanation": "Unsecured items can become projectiles in high winds, risking injury and property damage."
+  },
+  {
+    "questionId": "sw11",
+    "topic": "severe_weather",
+    "difficulty": 2,
+    "text": "What is the difference between a tornado watch and a tornado warning?",
+    "correctAnswer": "A watch means conditions are favorable for tornadoes; a warning means one has been sighted or detected",
+    "explanation": "A warning requires immediate shelter, while a watch means stay alert."
+  },
+  {
+    "questionId": "sw12",
+    "topic": "severe_weather",
+    "difficulty": 2,
+    "text": "Why should mobile homes not be used as tornado shelter?",
+    "correctAnswer": "They offer little protection and can be destroyed even in weak tornadoes",
+    "explanation": "Occupants should identify a sturdy nearby building in advance."
+  },
+  {
+    "questionId": "sw13",
+    "topic": "severe_weather",
+    "difficulty": 2,
+    "text": "What should you do if driving and a tornado is spotted nearby?",
+    "correctAnswer": "Do not try to outrun it - seek sturdy shelter or lie in a low area away from the car",
+    "explanation": "Vehicles offer little protection and can be thrown by tornado winds."
+  },
+  {
+    "questionId": "sw14",
+    "topic": "severe_weather",
+    "difficulty": 2,
+    "text": "How far out does a hurricane watch typically get issued before expected impact?",
+    "correctAnswer": "About 48 hours",
+    "explanation": "This gives time to finalize evacuation and preparation plans."
+  },
+  {
+    "questionId": "sw15",
+    "topic": "severe_weather",
+    "difficulty": 2,
+    "text": "Why should you fill your bathtub with water before a major storm?",
+    "correctAnswer": "In case of water service disruption, for sanitation and cleaning",
+    "explanation": "Stored tub water shouldn't be used for drinking without treatment."
+  },
+  {
+    "questionId": "sw5",
+    "topic": "severe_weather",
+    "difficulty": 3,
+    "text": "During a tornado, if no sturdy building is available, what is the recommended last resort?",
+    "correctAnswer": "Lie flat in a low-lying area like a ditch and cover your head",
+    "explanation": "This carries real risk and is not a substitute for proper shelter, but it is safer than remaining exposed and upright."
+  },
+  {
+    "questionId": "sw16",
+    "topic": "severe_weather",
+    "difficulty": 3,
+    "text": "What is 'storm surge' in the context of a hurricane?",
+    "correctAnswer": "An abnormal rise of seawater pushed ashore by the storm",
+    "explanation": "It is often the leading cause of hurricane-related deaths in coastal areas."
+  },
+  {
+    "questionId": "sw17",
+    "topic": "severe_weather",
+    "difficulty": 3,
+    "text": "Why can hail be dangerous even without a tornado present?",
+    "correctAnswer": "Large hail can cause serious injury and significant property damage",
+    "explanation": "Severe thunderstorms can produce damaging hail without ever producing a tornado."
+  },
+  {
+    "questionId": "sw18",
+    "topic": "severe_weather",
+    "difficulty": 3,
+    "text": "What is the 'eye' of a hurricane, and why is it dangerous to think the storm has passed when it arrives?",
+    "correctAnswer": "The calm center of the storm - winds return suddenly and violently after it passes",
+    "explanation": "People are sometimes injured by going outside during the temporary calm."
+  },
+  {
+    "questionId": "sw19",
+    "topic": "severe_weather",
+    "difficulty": 3,
+    "text": "Why should you avoid corded phones and plumbing during a lightning storm?",
+    "correctAnswer": "Lightning can travel through wiring and pipes",
+    "explanation": "Cordless and cell phones not connected to a wall outlet are safer to use."
+  },
+  {
+    "questionId": "sw20",
+    "topic": "severe_weather",
+    "difficulty": 3,
+    "text": "What is a derecho?",
+    "correctAnswer": "A widespread, long-lived windstorm associated with fast-moving thunderstorms",
+    "explanation": "It can produce damage similar to a tornado but over a much larger area."
+  },
+  {
+    "questionId": "w1",
+    "topic": "wildfire",
+    "difficulty": 1,
+    "text": "What should you do first if you are told to evacuate because of a wildfire?",
+    "correctAnswer": "Leave immediately, do not wait",
+    "explanation": "Fire behavior can change quickly with wind shifts, and roads can become congested or blocked - leaving early is safer than waiting."
+  },
+  {
+    "questionId": "w2",
+    "topic": "wildfire",
+    "difficulty": 1,
+    "text": "What is 'defensible space' around a home?",
+    "correctAnswer": "A cleared buffer zone free of flammable vegetation and debris",
+    "explanation": "It slows or stops the spread of fire toward the structure and reduces ember ignition risk."
+  },
+  {
+    "questionId": "w6",
+    "topic": "wildfire",
+    "difficulty": 1,
+    "text": "What should you do if you see wildfire smoke approaching your area?",
+    "correctAnswer": "Monitor local alerts and be ready to evacuate",
+    "explanation": "Fire and smoke conditions can change quickly, so early awareness matters."
+  },
+  {
+    "questionId": "w7",
+    "topic": "wildfire",
+    "difficulty": 1,
+    "text": "Why should dry leaves and pine needles be cleared from your roof and gutters?",
+    "correctAnswer": "They can easily ignite from wind-blown embers",
+    "explanation": "Embers can travel far ahead of the actual flame front and ignite debris."
+  },
+  {
+    "questionId": "w8",
+    "topic": "wildfire",
+    "difficulty": 1,
+    "text": "What should you pack first if told to evacuate due to wildfire?",
+    "correctAnswer": "Your go-bag with essentials and important documents",
+    "explanation": "Having it pre-packed saves critical time when evacuation orders come."
+  },
+  {
+    "questionId": "w9",
+    "topic": "wildfire",
+    "difficulty": 1,
+    "text": "Why is it recommended to close all windows and doors before evacuating a wildfire zone?",
+    "correctAnswer": "To slow the entry of embers and smoke into the home",
+    "explanation": "This can reduce the chance of the home igniting from the inside."
+  },
+  {
+    "questionId": "w10",
+    "topic": "wildfire",
+    "difficulty": 1,
+    "text": "What should you avoid using outdoors during a red flag warning?",
+    "correctAnswer": "Anything that can spark, like grills, power tools, or campfires",
+    "explanation": "Dry, windy conditions make it easy for a small spark to start a large fire."
+  },
+  {
+    "questionId": "w3",
+    "topic": "wildfire",
+    "difficulty": 2,
+    "text": "What should you do to protect your indoor air during a wildfire smoke event?",
+    "correctAnswer": "Stay indoors with windows and doors closed",
+    "explanation": "Running air conditioning on recirculate mode also helps keep smoke particles out."
+  },
+  {
+    "questionId": "w4",
+    "topic": "wildfire",
+    "difficulty": 2,
+    "text": "Why should you keep gutters and roofs clear of dead leaves during wildfire season?",
+    "correctAnswer": "Wind-blown embers can ignite dry debris and start a fire on your property",
+    "explanation": "Embers landing on dry debris are a common cause of home ignition, even when the main fire is still far away."
+  },
+  {
+    "questionId": "w11",
+    "topic": "wildfire",
+    "difficulty": 2,
+    "text": "What are the three zones typically recommended for defensible space around a home?",
+    "correctAnswer": "Immediate, intermediate, and extended zones with decreasing vegetation clearance requirements",
+    "explanation": "This layered approach reduces the fire's ability to reach the structure."
+  },
+  {
+    "questionId": "w12",
+    "topic": "wildfire",
+    "difficulty": 2,
+    "text": "Why might local authorities order evacuation before a wildfire has reached a neighborhood?",
+    "correctAnswer": "Fire spread and wind direction can change rapidly, and roads may become blocked",
+    "explanation": "Waiting until the fire is visible can mean roads are already too dangerous to use."
+  },
+  {
+    "questionId": "w13",
+    "topic": "wildfire",
+    "difficulty": 2,
+    "text": "What is an N95 respirator rated to filter, relevant to wildfire smoke?",
+    "correctAnswer": "At least 95% of small airborne particles",
+    "explanation": "Wildfire smoke contains fine particulate matter that ordinary masks do not filter well."
+  },
+  {
+    "questionId": "w14",
+    "topic": "wildfire",
+    "difficulty": 2,
+    "text": "Why should vents and eaves be screened with fine mesh in wildfire-prone areas?",
+    "correctAnswer": "To prevent embers from entering and igniting the home from inside",
+    "explanation": "Ember intrusion through vents is a common way homes catch fire during wildfires."
+  },
+  {
+    "questionId": "w15",
+    "topic": "wildfire",
+    "difficulty": 2,
+    "text": "What should you do with your car if evacuating during a wildfire?",
+    "correctAnswer": "Park facing the direction of escape and keep the fuel tank at least half full",
+    "explanation": "This saves time and avoids being stranded if you need to leave quickly."
+  },
+  {
+    "questionId": "w5",
+    "topic": "wildfire",
+    "difficulty": 3,
+    "text": "What mask type offers meaningful protection against fine wildfire smoke particles?",
+    "correctAnswer": "An N95 or better-rated respirator",
+    "explanation": "Cloth or surgical masks do not filter the fine particulate matter found in wildfire smoke effectively."
+  },
+  {
+    "questionId": "w16",
+    "topic": "wildfire",
+    "difficulty": 3,
+    "text": "What weather conditions most increase wildfire danger?",
+    "correctAnswer": "Low humidity, high temperatures, and strong winds",
+    "explanation": "These conditions dry out vegetation and help fires spread rapidly."
+  },
+  {
+    "questionId": "w17",
+    "topic": "wildfire",
+    "difficulty": 3,
+    "text": "What is a 'firebrand' or ember shower, and why is it dangerous even far from the main fire?",
+    "correctAnswer": "Burning embers carried by wind that can ignite new fires far ahead of the flame front",
+    "explanation": "Embers are responsible for igniting many homes that were never touched by direct flame."
+  },
+  {
+    "questionId": "w18",
+    "topic": "wildfire",
+    "difficulty": 3,
+    "text": "Why is it unsafe to rely only on a car's recirculate air mode while driving through wildfire smoke?",
+    "correctAnswer": "It reduces but does not eliminate smoke infiltration, and visibility can still be dangerously low",
+    "explanation": "Driving through heavy smoke should be avoided entirely if possible."
+  },
+  {
+    "questionId": "w19",
+    "topic": "wildfire",
+    "difficulty": 3,
+    "text": "What is a 'backfire' or controlled burn used for in wildfire response?",
+    "correctAnswer": "To remove fuel in the path of an advancing wildfire, reducing its intensity",
+    "explanation": "This is conducted by trained fire crews, not something civilians should attempt."
+  },
+  {
+    "questionId": "w20",
+    "topic": "wildfire",
+    "difficulty": 3,
+    "text": "Why can wildfire smoke exposure be dangerous even for healthy people with no respiratory conditions?",
+    "correctAnswer": "Fine particulates can irritate airways and affect the heart and lungs with prolonged exposure",
+    "explanation": "Even short-term exposure can cause coughing, eye irritation, and reduced lung function."
+  }
 ]

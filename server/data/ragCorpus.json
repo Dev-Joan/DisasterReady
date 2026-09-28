@@ -3,7 +3,7 @@
     "id": "eq-01",
     "topic": "earthquake",
     "title": "Drop, Cover, and Hold On",
-    "text": "During earthquake shaking, the recommended action indoors is Drop, Cover, and Hold On: drop to your hands and knees so the shaking doesn't knock you down, take cover under a sturdy table or desk (or against an interior wall away from windows if no cover is available), and hold on to your shelter until the shaking stops. Do not run outside during shaking — most injuries happen from falling objects and debris while people are moving."
+    "text": "During earthquake shaking, the recommended action indoors is Drop, Cover, and Hold On: drop to your hands and knees so the shaking doesn't knock you down, take cover under a sturdy table or desk (or against an interior wall away from windows if no cover is available), and hold on to your shelter until the shaking stops. Do not run outside during shaking - most injuries happen from falling objects and debris while people are moving."
   },
   {
     "id": "eq-02",
@@ -27,7 +27,7 @@
     "id": "eq-05",
     "topic": "earthquake",
     "title": "Aftershocks",
-    "text": "Aftershocks — smaller earthquakes that follow the main shock — can happen minutes, days, or even weeks later, and some can be strong enough to cause additional damage to already-weakened structures. After the initial shaking stops, treat any building with visible cracks, leaning walls, or structural damage as unsafe until it has been inspected, and be ready to Drop, Cover, and Hold On again if another aftershock occurs."
+    "text": "Aftershocks - smaller earthquakes that follow the main shock - can happen minutes, days, or even weeks later, and some can be strong enough to cause additional damage to already-weakened structures. After the initial shaking stops, treat any building with visible cracks, leaning walls, or structural damage as unsafe until it has been inspected, and be ready to Drop, Cover, and Hold On again if another aftershock occurs."
   },
   {
     "id": "eq-06",
@@ -39,7 +39,7 @@
     "id": "fl-01",
     "topic": "flood",
     "title": "Never drive through floodwater",
-    "text": "Most flood-related deaths involve vehicles. Just six inches of fast-moving water can knock over an adult, and one to two feet of moving water can carry away most cars, including SUVs and trucks. Floodwater also frequently hides road damage, downed power lines, and strong currents that are impossible to judge by sight. The guidance is simple: Turn Around, Don't Drown — never attempt to drive or walk through flooded roads."
+    "text": "Most flood-related deaths involve vehicles. Just six inches of fast-moving water can knock over an adult, and one to two feet of moving water can carry away most cars, including SUVs and trucks. Floodwater also frequently hides road damage, downed power lines, and strong currents that are impossible to judge by sight. The guidance is simple: Turn Around, Don't Drown - never attempt to drive or walk through flooded roads."
   },
   {
     "id": "fl-02",
@@ -57,7 +57,7 @@
     "id": "fl-04",
     "topic": "flood",
     "title": "Flash flood watches versus warnings",
-    "text": "A flash flood watch means conditions are favorable for flash flooding in and near the area — it is time to review your evacuation plan and stay alert. A flash flood warning means flash flooding is imminent or already occurring — it is time to move to higher ground immediately. Flash floods can develop within minutes of heavy rainfall, so warnings require immediate action rather than a wait-and-see approach."
+    "text": "A flash flood watch means conditions are favorable for flash flooding in and near the area - it is time to review your evacuation plan and stay alert. A flash flood warning means flash flooding is imminent or already occurring - it is time to move to higher ground immediately. Flash floods can develop within minutes of heavy rainfall, so warnings require immediate action rather than a wait-and-see approach."
   },
   {
     "id": "fl-05",
@@ -75,7 +75,7 @@
     "id": "wf-02",
     "topic": "wildfire",
     "title": "When to evacuate for wildfire",
-    "text": "Do not wait for a mandatory evacuation order if a wildfire is close, visibility is poor from smoke, or officials have issued an evacuation warning for your area — leave earlier if you can, since fire behavior can change quickly with wind shifts and roads can become congested or blocked. Keep vehicles fueled and packed with a go-bag during high fire-risk periods so you are not caught preparing at the last minute."
+    "text": "Do not wait for a mandatory evacuation order if a wildfire is close, visibility is poor from smoke, or officials have issued an evacuation warning for your area - leave earlier if you can, since fire behavior can change quickly with wind shifts and roads can become congested or blocked. Keep vehicles fueled and packed with a go-bag during high fire-risk periods so you are not caught preparing at the last minute."
   },
   {
     "id": "wf-03",
@@ -141,7 +141,7 @@
     "id": "evac-02",
     "topic": "evacuation",
     "title": "What to bring when evacuating",
-    "text": "When evacuating, prioritize your go-bag, identification and important documents, medications, phone and charger, cash (card payment systems may be unavailable), and comfort items for children if applicable. Do not delay departure to gather non-essential belongings — evacuation orders exist because officials expect conditions to worsen, and the time saved by leaving promptly is more valuable than most possessions."
+    "text": "When evacuating, prioritize your go-bag, identification and important documents, medications, phone and charger, cash (card payment systems may be unavailable), and comfort items for children if applicable. Do not delay departure to gather non-essential belongings - evacuation orders exist because officials expect conditions to worsen, and the time saved by leaving promptly is more valuable than most possessions."
   },
   {
     "id": "evac-03",

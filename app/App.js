@@ -37,35 +37,32 @@ import ProfileScreen from './screens/ProfileScreen';
 import DispatchHeroScreen from './screens/DispatchHeroScreen';
 import FamilyPlanBuilderScreen from './screens/FamilyPlanBuilderScreen';
 import WeatherScreen from './screens/WeatherScreen';
-
 const Stack = createNativeStackNavigator();
-
-// Called once per app load, and again whenever userId changes (i.e. once
-// per login) — reads the user's persisted on/off preference and brings the
-// device's LOCAL reminder schedule in line with it. This is the only place
-// that runs on app startup; the Settings screen calls syncLocalReminders
-// directly for immediate toggling, and both end up idempotent (see
-// services/notifications.js).
 function useSyncLocalReminders(userId) {
   useEffect(() => {
     configureNotificationHandler();
   }, []);
-
   useEffect(() => {
     if (!userId) return;
     let active = true;
-    apiRequest(`/onboarding/profile?userId=${userId}`, 'GET')
-      .then((profile) => { if (active) syncLocalReminders(!!profile.notificationsEnabled); })
-      .catch(() => {});
-    return () => { active = false; };
+    apiRequest(`/onboarding/profile?userId=${userId}`, 'GET').then(profile => {
+      if (active) syncLocalReminders(!!profile.notificationsEnabled);
+    }).catch(() => {});
+    return () => {
+      active = false;
+    };
   }, [userId]);
 }
-
 function AppNavigator() {
-  const { theme, themeName } = useTheme();
-  const { userId, isRestoringSession } = useUser();
+  const {
+    theme,
+    themeName
+  } = useTheme();
+  const {
+    userId,
+    isRestoringSession
+  } = useUser();
   useSyncLocalReminders(userId);
-
   const navTheme = {
     ...(themeName === 'dark' ? DarkTheme : DefaultTheme),
     colors: {
@@ -77,54 +74,121 @@ function AppNavigator() {
       primary: themeName === 'dark' ? '#0EA5E9' : '#1E3A8A'
     }
   };
-
-  // While the stored session (if any) is being read from AsyncStorage, show
-  // a loading state instead of the navigator — otherwise a returning user
-  // would see the Login screen flash briefly before being bounced to Home.
   if (isRestoringSession) {
     return <LoadingState message="Loading your session..." />;
   }
-
-  return (
-    <NavigationContainer theme={navTheme}>
-      <Stack.Navigator initialRouteName={userId ? 'Home' : 'Login'} screenOptions={{ animation: 'slide_from_right', animationDuration: 280 }}>
-        <Stack.Screen name="Login" component={LoginScreen} options={{ title: 'DisasteReady', headerTitleAlign: 'center', animation: 'fade' }} />
-        <Stack.Screen name="Signup" component={SignupScreen} options={{ title: 'DisasteReady', headerTitleAlign: 'center' }} />
-        <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Home', animation: 'fade' }} />
-        <Stack.Screen name="Quiz" component={QuizScreen} options={{ title: 'Quiz' }} />
-        <Stack.Screen name="Chatbot" component={ChatbotScreen} options={{ title: 'Ask DisasterReady', animation: 'slide_from_bottom' }} />
-        <Stack.Screen name="Leaderboard" component={LeaderboardScreen} options={{ title: 'Leaderboard' }} />
-        <Stack.Screen name="Alerts" component={AlertsScreen} options={{ title: 'Alerts' }} />
-        <Stack.Screen name="Tasks" component={TasksScreen} options={{ title: 'Daily Tasks' }} />
-        <Stack.Screen name="KitBuilder" component={KitBuilderScreen} options={{ headerShown: false, animation: 'fade' }} />
-        <Stack.Screen name="SafeSpotExplorer" component={SafeSpotExplorerScreen} options={{ headerShown: false, animation: 'fade' }} />
-        <Stack.Screen name="RouteRunner" component={RouteRunnerScreen} options={{ headerShown: false, animation: 'fade' }} />
-        <Stack.Screen name="Story" component={StoryScreen} options={{ title: 'Story Mode', animation: 'fade' }} />
-        <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings', animation: 'slide_from_bottom' }} />
-        <Stack.Screen name="Resources" component={ResourceHubScreen} options={{ title: 'Resource Hub' }} />
-        <Stack.Screen name="AudioPlayer" component={AudioPlayerScreen} options={{ title: 'Listen & Learn' }} />
-        <Stack.Screen name="LearningPath" component={LearningPathScreen} options={{ title: 'Learning Path' }} />
-        <Stack.Screen name="HouseholdKitPlanner" component={HouseholdKitPlannerScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="TeenScenarioChallenge" component={TeenScenarioChallengeScreen} options={{ headerShown: false, animation: 'fade' }} />
-        <Stack.Screen name="Lesson" component={LessonScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="FirstAid" component={FirstAidScreen} options={{ title: 'First Aid' }} />
-        <Stack.Screen name="FirstAidGuide" component={FirstAidGuideScreen} options={{ title: 'Guide' }} />
-        <Stack.Screen name="ArticleReader" component={ArticleReaderScreen} options={{ title: 'Article' }} />
-        <Stack.Screen name="SeniorArticleReader" component={SeniorArticleReaderScreen} options={{ title: 'Article', headerShown: false }} />
-        <Stack.Screen name="KnowledgeCheck" component={KnowledgeCheckScreen} options={{ title: 'Knowledge Check' }} />
-        <Stack.Screen name="KnowledgeCheckQuiz" component={KnowledgeCheckQuizScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile', animation: 'slide_from_bottom' }} />
-        <Stack.Screen name="DispatchHero" component={DispatchHeroScreen} options={{ title: 'Dispatch Hero', animation: 'fade' }} />
-        <Stack.Screen name="FamilyPlanBuilder" component={FamilyPlanBuilderScreen} options={{ title: 'Family Plan', animation: 'fade' }} />
-        <Stack.Screen name="Weather" component={WeatherScreen} options={{ title: 'Weather' }} />
+  return <NavigationContainer theme={navTheme}>
+      <Stack.Navigator initialRouteName={userId ? 'Home' : 'Login'} screenOptions={{
+      animation: 'slide_from_right',
+      animationDuration: 280
+    }}>
+        <Stack.Screen name="Login" component={LoginScreen} options={{
+        title: 'DisasteReady',
+        headerTitleAlign: 'center',
+        animation: 'fade'
+      }} />
+        <Stack.Screen name="Signup" component={SignupScreen} options={{
+        title: 'DisasteReady',
+        headerTitleAlign: 'center'
+      }} />
+        <Stack.Screen name="Home" component={HomeScreen} options={{
+        title: 'Home',
+        animation: 'fade'
+      }} />
+        <Stack.Screen name="Quiz" component={QuizScreen} options={{
+        title: 'Flashcards'
+      }} />
+        <Stack.Screen name="Chatbot" component={ChatbotScreen} options={{
+        title: 'Ask DisasterReady',
+        animation: 'slide_from_bottom'
+      }} />
+        <Stack.Screen name="Leaderboard" component={LeaderboardScreen} options={{
+        title: 'Leaderboard'
+      }} />
+        <Stack.Screen name="Alerts" component={AlertsScreen} options={{
+        title: 'Alerts'
+      }} />
+        <Stack.Screen name="Tasks" component={TasksScreen} options={{
+        title: 'Daily Tasks'
+      }} />
+        <Stack.Screen name="KitBuilder" component={KitBuilderScreen} options={{
+        headerShown: false,
+        animation: 'fade'
+      }} />
+        <Stack.Screen name="SafeSpotExplorer" component={SafeSpotExplorerScreen} options={{
+        headerShown: false,
+        animation: 'fade'
+      }} />
+        <Stack.Screen name="RouteRunner" component={RouteRunnerScreen} options={{
+        headerShown: false,
+        animation: 'fade'
+      }} />
+        <Stack.Screen name="Story" component={StoryScreen} options={{
+        title: 'Story Mode',
+        animation: 'fade'
+      }} />
+        <Stack.Screen name="Settings" component={SettingsScreen} options={{
+        title: 'Settings',
+        animation: 'slide_from_bottom'
+      }} />
+        <Stack.Screen name="Resources" component={ResourceHubScreen} options={{
+        title: 'Resource Hub'
+      }} />
+        <Stack.Screen name="AudioPlayer" component={AudioPlayerScreen} options={{
+        title: 'Listen & Learn'
+      }} />
+        <Stack.Screen name="LearningPath" component={LearningPathScreen} options={{
+        title: 'Learning Path'
+      }} />
+        <Stack.Screen name="HouseholdKitPlanner" component={HouseholdKitPlannerScreen} options={{
+        headerShown: false
+      }} />
+        <Stack.Screen name="TeenScenarioChallenge" component={TeenScenarioChallengeScreen} options={{
+        headerShown: false,
+        animation: 'fade'
+      }} />
+        <Stack.Screen name="Lesson" component={LessonScreen} options={{
+        headerShown: false
+      }} />
+        <Stack.Screen name="FirstAid" component={FirstAidScreen} options={{
+        title: 'First Aid'
+      }} />
+        <Stack.Screen name="FirstAidGuide" component={FirstAidGuideScreen} options={{
+        title: 'Guide'
+      }} />
+        <Stack.Screen name="ArticleReader" component={ArticleReaderScreen} options={{
+        title: 'Article'
+      }} />
+        <Stack.Screen name="SeniorArticleReader" component={SeniorArticleReaderScreen} options={{
+        title: 'Article',
+        headerShown: false
+      }} />
+        <Stack.Screen name="KnowledgeCheck" component={KnowledgeCheckScreen} options={{
+        title: 'Knowledge Check'
+      }} />
+        <Stack.Screen name="KnowledgeCheckQuiz" component={KnowledgeCheckQuizScreen} options={{
+        headerShown: false
+      }} />
+        <Stack.Screen name="Profile" component={ProfileScreen} options={{
+        title: 'Profile',
+        animation: 'slide_from_bottom'
+      }} />
+        <Stack.Screen name="DispatchHero" component={DispatchHeroScreen} options={{
+        title: 'Dispatch Hero',
+        animation: 'fade'
+      }} />
+        <Stack.Screen name="FamilyPlanBuilder" component={FamilyPlanBuilderScreen} options={{
+        title: 'Family Plan',
+        animation: 'fade'
+      }} />
+        <Stack.Screen name="Weather" component={WeatherScreen} options={{
+        title: 'Weather'
+      }} />
       </Stack.Navigator>
-    </NavigationContainer>
-  );
+    </NavigationContainer>;
 }
-
 export default function App() {
-  return (
-    <SafeAreaProvider>
+  return <SafeAreaProvider>
       <UserProvider>
         <AccessibilityProvider>
           <ThemeProvider>
@@ -132,6 +196,5 @@ export default function App() {
           </ThemeProvider>
         </AccessibilityProvider>
       </UserProvider>
-    </SafeAreaProvider>
-  );
+    </SafeAreaProvider>;
 }

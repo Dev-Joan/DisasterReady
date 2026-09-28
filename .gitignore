@@ -1,5 +1,31 @@
 node_modules/
 .env
+.env*.local
 .expo/
+dist/
+web-build/
+expo-env.d.ts
 *.log
 .DS_Store
+
+# native build output / signing (in case of expo prebuild)
+/ios
+/android
+*.jks
+*.p12
+*.p8
+*.pem
+*.mobileprovision
+.kotlin/
+*.orig.*
+.metro-health-check*
+*.tsbuildinfo
+
+# secrets
+server/.env
+.env
+
+# sqlite runtime files (data + WAL/SHM), never commit the live db
+*.db
+*.db-wal
+*.db-shm

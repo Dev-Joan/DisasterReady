@@ -1,47 +1,41 @@
-/**
- * ============================================================================
- *  ONE-TIME MIGRATION: JSON DATA FILES -> SQLITE
- * ============================================================================
- * Creates the schema (db/schema.sql, via db/connection.js) and imports every
- * row from the existing JSON data files into it, so no data is lost when the
- * services stop reading/writing those files directly.
- *
- * NOT migrated, by design:
- *   - data/ragCorpus.json / data/corpusEmbeddings.json — the RAG corpus and
- *     its vectors stay as flat files (services/ragService.js is unaffected
- *     by this migration).
- *
- * Two catalog gaps discovered while cross-referencing badges.json against
- * every badge id actually awarded in routes/gamification.js are filled in
- * here (see EXTRA_BADGES below) — those five badge ids were being awarded
- * successfully under the old schema-less JSON file (which had no
- * referential integrity to violate), but would fail the new
- * `user_badges.badge_id REFERENCES badges(badge_id)` foreign key without a
- * catalog row. Nothing about this changes old data — it fills in catalog
- * metadata for ids that were always live in the running app.
- *
- * SAFETY: refuses to run if the `users` table already has rows, so it can't
- * accidentally double-import. Run with:
- *   node scripts/migrateJsonToSqlite.js
- * from the `server` directory.
- * ============================================================================
- */
-
 const fs = require('fs');
 const path = require('path');
 const db = require('../db/connection');
-
 const dataDir = path.join(__dirname, '../data');
-const readJson = (name) => JSON.parse(fs.readFileSync(path.join(dataDir, name), 'utf8'));
-
-const EXTRA_BADGES = [
-  { badgeId: 'family_planner', title: 'Family Planner', description: 'Saved a household family emergency plan.' },
-  { badgeId: 'route_hero', title: 'Route Hero', description: 'Completed the flood evacuation route challenge.' },
-  { badgeId: 'sequence_hero', title: 'Sequence Hero', description: 'Completed the earthquake response sequence challenge.' },
-  { badgeId: 'safehouse_hero', title: 'Safehouse Hero', description: 'Completed the fire safehouse challenge.' },
-  { badgeId: 'dispatch_hero', title: 'Dispatch Hero', description: 'Completed the emergency dispatch challenge.' }
-];
-
+const readJson = name => JSON.parse(fs.readFileSync(path.join(dataDir, name), 'utf8'));
+const EXTRA_BADGES = [{
+  badgeId: 'family_planner',
+  title: 'Family Planner',
+  description: 'Saved a household family emergency plan.'
+}, {
+  badgeId: 'route_hero',
+  title: 'Route Hero',
+  description: 'Completed the flood evacuation route challenge.'
+}, {
+  badgeId: 'sequence_hero',
+  title: 'Sequence Hero',
+  description: 'Completed the earthquake response sequence challenge.'
+}, {
+  badgeId: 'safehouse_hero',
+  title: 'Safehouse Hero',
+  description: 'Completed the fire safehouse challenge.'
+}, {
+  badgeId: 'dispatch_hero',
+  title: 'Dispatch Hero',
+  description: 'Completed the emergency dispatch challenge.'
+}, {
+  badgeId: 'safe_spot_hero',
+  title: 'Safe Spot Hero',
+  description: 'Found every hidden hazard and aced the Drop, Cover, Hold drill.'
+}, {
+  badgeId: 'hazard_hero',
+  title: 'Hazard Hero',
+  description: 'Escaped the smoke-filled building, dodging water and live wires.'
+}, {
+  badgeId: 'scenario_strategist',
+  title: 'Scenario Strategist',
+  description: 'Made the right call under pressure in the timed scenario challenge.'
+}];
 function ensureStreakDefaults(g) {
   return {
     streakFreezes: g.streakFreezes ?? 0,
@@ -50,14 +44,12 @@ function ensureStreakDefaults(g) {
     dailyXpDate: g.dailyXpDate ?? null
   };
 }
-
 function main() {
   const alreadyMigrated = db.prepare('SELECT COUNT(*) AS n FROM users').get().n > 0;
   if (alreadyMigrated) {
     console.error('Refusing to run: `users` table already has rows. This script is one-time-use only.');
     process.exit(1);
   }
-
   const users = readJson('users.json');
   const gamificationState = readJson('gamificationState.json');
   const badgesCatalog = readJson('badges.json');
@@ -66,9 +58,7 @@ function main() {
   const legacyQuizState = readJson('quizState.json');
   const bktState = readJson('bktState.json');
   const alerts = readJson('alerts.json');
-
   const counts = {};
-
   const insertUser = db.prepare(`
     INSERT INTO users (id, username, password_hash, name, age, region, country, theme)
     VALUES (@id, @username, @password_hash, @name, @age, @region, @country, @theme)
@@ -119,29 +109,22 @@ function main() {
   const insertGoBagItem = db.prepare('INSERT INTO user_family_plan_go_bag (user_id, item_id) VALUES (?, ?)');
   const insertCompletedLesson = db.prepare('INSERT INTO user_completed_lessons (user_id, lesson_id) VALUES (?, ?)');
   const insertCompletedChapter = db.prepare('INSERT INTO user_completed_knowledge_chapters (user_id, chapter_id) VALUES (?, ?)');
-
   const importAll = db.transaction(() => {
-    // --- catalogs first (referenced by FKs below) ---
     for (const b of badgesCatalog) insertBadgeCatalog.run(b.badgeId, b.title, b.description || null);
     for (const b of EXTRA_BADGES) insertBadgeCatalog.run(b.badgeId, b.title, b.description);
     counts.badges = badgesCatalog.length + EXTRA_BADGES.length;
-
     for (const t of dailyTasksCatalog) {
       insertDailyTaskCatalog.run(t.taskId, t.title, t.description || null, t.hazardTopic || null, t.pointsAwarded);
     }
     counts.daily_tasks = dailyTasksCatalog.length;
-
     for (const q of quizBank) {
       insertQuizQuestion.run(q.questionId, q.topic, q.difficulty, q.text, q.correctAnswer, q.explanation || null);
     }
     counts.quiz_questions = quizBank.length;
-
     for (const a of alerts) {
       insertAlert.run(a.alertId, a.severity, a.hazard, a.region, a.message, a.active ? 1 : 0);
     }
     counts.alerts = alerts.length;
-
-    // --- users + their flags ---
     for (const u of users) {
       insertUser.run({
         id: u.userId,
@@ -156,9 +139,11 @@ function main() {
       for (const flag of u.accessibilityFlags || []) insertFlag.run(u.userId, flag);
     }
     counts.users = users.length;
-
-    // --- gamification state + badges earned + daily task completions + family plan + lessons/chapters ---
-    let badgeCount = 0, taskCompletionCount = 0, familyPlanCount = 0, lessonCount = 0, chapterCount = 0;
+    let badgeCount = 0,
+      taskCompletionCount = 0,
+      familyPlanCount = 0,
+      lessonCount = 0,
+      chapterCount = 0;
     const migratedAt = new Date().toISOString();
     for (const g of gamificationState) {
       const defaults = ensureStreakDefaults(g);
@@ -174,32 +159,28 @@ function main() {
         daily_xp_earned: defaults.dailyXpEarned,
         daily_xp_date: defaults.dailyXpDate
       });
-
       for (const badgeId of g.badges || []) {
-        // The old JSON never recorded WHEN a badge was earned, only that it
-        // was — `earned_at` is genuinely new information from here on, not
-        // a lost historical fact, so it's stamped with the migration time.
         insertUserBadge.run(g.userId, badgeId, migratedAt);
         badgeCount++;
       }
-
       for (const entry of g.dailyTasksCompleted || []) {
         insertDailyTaskCompletion.run(g.userId, entry.taskId, entry.date);
         taskCompletionCount++;
       }
-
       if (g.familyPlan) {
-        insertFamilyPlan.run(
-          g.userId, g.familyPlan.meetingPoint.id, g.familyPlan.meetingPoint.label,
-          g.familyPlan.meetingPoint.detail || null, g.familyPlan.savedAt
-        );
+        insertFamilyPlan.run(g.userId, g.familyPlan.meetingPoint.id, g.familyPlan.meetingPoint.label, g.familyPlan.meetingPoint.detail || null, g.familyPlan.savedAt);
         (g.familyPlan.callOrder || []).forEach((memberId, i) => insertCallOrder.run(g.userId, memberId, i));
-        (g.familyPlan.goBag || []).forEach((itemId) => insertGoBagItem.run(g.userId, itemId));
+        (g.familyPlan.goBag || []).forEach(itemId => insertGoBagItem.run(g.userId, itemId));
         familyPlanCount++;
       }
-
-      for (const lessonId of g.completedLessons || []) { insertCompletedLesson.run(g.userId, lessonId); lessonCount++; }
-      for (const chapterId of g.completedKnowledgeChapters || []) { insertCompletedChapter.run(g.userId, chapterId); chapterCount++; }
+      for (const lessonId of g.completedLessons || []) {
+        insertCompletedLesson.run(g.userId, lessonId);
+        lessonCount++;
+      }
+      for (const chapterId of g.completedKnowledgeChapters || []) {
+        insertCompletedChapter.run(g.userId, chapterId);
+        chapterCount++;
+      }
     }
     counts.gamification_state = gamificationState.length;
     counts.user_badges = badgeCount;
@@ -207,9 +188,8 @@ function main() {
     counts.user_family_plans = familyPlanCount;
     counts.user_completed_lessons = lessonCount;
     counts.user_completed_knowledge_chapters = chapterCount;
-
-    // --- legacy quiz engine state ---
-    let legacyStateCount = 0, legacyHistoryCount = 0;
+    let legacyStateCount = 0,
+      legacyHistoryCount = 0;
     for (const [userId, topics] of Object.entries(legacyQuizState)) {
       for (const [topic, t] of Object.entries(topics)) {
         insertLegacyState.run(userId, topic, t.currentDifficulty, t.mastered ? 1 : 0);
@@ -222,14 +202,13 @@ function main() {
     }
     counts.legacy_quiz_state = legacyStateCount;
     counts.legacy_quiz_answer_history = legacyHistoryCount;
-
-    // --- BKT engine state ---
-    let bktStateCount = 0, bktHistoryCount = 0;
+    let bktStateCount = 0,
+      bktHistoryCount = 0;
     for (const [userId, skills] of Object.entries(bktState)) {
       for (const [skill, s] of Object.entries(skills)) {
         insertBktState.run(userId, skill, s.pMastery, s.attempts, s.correctCount, s.mastered ? 1 : 0);
         bktStateCount++;
-        (s.history || []).forEach((h) => {
+        (s.history || []).forEach(h => {
           insertBktHistory.run(userId, skill, h.attempt, h.wasCorrect ? 1 : 0, h.pBefore, h.posterior, h.pAfter);
           bktHistoryCount++;
         });
@@ -238,14 +217,9 @@ function main() {
     counts.bkt_state = bktStateCount;
     counts.bkt_answer_history = bktHistoryCount;
   });
-
   importAll();
-
   console.log('Migration complete. Rows imported:');
   Object.entries(counts).forEach(([table, n]) => console.log(`  ${table.padEnd(34)} ${n}`));
-
-  // --- Post-import verification: row counts read back from the DB must
-  // match what was reported as imported above. ---
   console.log('\nVerification (DB row counts vs. imported counts):');
   let allOk = true;
   for (const table of Object.keys(counts)) {
@@ -255,10 +229,9 @@ function main() {
     console.log(`  ${table.padEnd(34)} db=${dbCount} imported=${counts[table]} ${ok ? 'OK' : 'MISMATCH'}`);
   }
   if (!allOk) {
-    console.error('\nVerification FAILED — see MISMATCH rows above.');
+    console.error('\nVerification FAILED - see MISMATCH rows above.');
     process.exit(1);
   }
   console.log('\nAll row counts verified.');
 }
-
 main();
